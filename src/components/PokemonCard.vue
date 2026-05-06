@@ -19,14 +19,15 @@ defineEmits<{
 
 const favoritesStore = useFavoritesStore()
 const queryClient = useQueryClient()
-const id = getPokemonId(props.url)
-const imageUrl = getPokemonImageUrl(id)
-const paddedId = String(id).padStart(4, '0')
 
-const isFavorited = computed(() => favoritesStore.isFavorite(id))
+const id = computed(() => getPokemonId(props.url))
+const imageUrl = computed(() => getPokemonImageUrl(id.value))
+const paddedId = computed(() => String(id.value).padStart(4, '0'))
+
+const isFavorited = computed(() => favoritesStore.isFavorite(id.value))
 
 const types = computed(() => {
-  const cached = queryClient.getQueryData<PokemonDetail>(pokemonKeys.detail(id))
+  const cached = queryClient.getQueryData<PokemonDetail>(pokemonKeys.detail(id.value))
   return cached?.types?.map((t) => t.type.name) ?? []
 })
 

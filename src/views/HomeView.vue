@@ -20,9 +20,11 @@ import SortSelect from '../components/SortSelect.vue'
 import PokemonGrid from '../components/PokemonGrid.vue'
 
 const router = useRouter()
+const pokemonLogo = '/pokemon.svg'
 const filtersStore = useFiltersStore()
 const { searchInput, selectedTypes, sortBy, showFilters, showFavoritesOnly } =
   storeToRefs(filtersStore)
+const { toggleFilters } = filtersStore
 const favoritesStore = useFavoritesStore()
 const { prefetchPokemonDetail } = usePrefetchPokemon()
 
@@ -62,12 +64,12 @@ const allPokemon = computed(() => {
   return infiniteData.value.pages.flatMap((page) => page.results)
 })
 
-const activeList = computed(() => {
-  if (debouncedSearch.value.trim()) return searchData.value?.results || []
-  if (selectedTypes.value.length > 0) return typeResults.value || []
-  if (showFavoritesView.value) return allListData.value?.results || []
-  return allPokemon.value
-})
+  const activeList = computed(() => {
+    if (debouncedSearch.value.trim()) return searchData.value?.results || []
+    if (selectedTypes.value.length > 0) return typeResults.value
+    if (showFavoritesView.value) return allListData.value?.results || []
+    return allPokemon.value
+  })
 
 const displayedPokemon = computed(() => {
   let list = [...activeList.value]
@@ -158,7 +160,7 @@ onBeforeRouteLeave(() => {
       <div class="relative z-10 max-w-7xl mx-auto px-4 py-10 text-center">
         <div class="pokemon-logo-wrapper mb-5">
           <img
-            src="/pokemon.svg"
+            :src="pokemonLogo"
             alt="Pokémon"
             class="pokemon-logo-img mx-auto w-56 md:w-72"
           />
@@ -191,7 +193,7 @@ onBeforeRouteLeave(() => {
         <SearchBar v-model="searchInput" />
         <SortSelect v-model="sortBy" />
         <button
-          @click="showFilters = !showFilters"
+          @click="toggleFilters"
           class="bg-gray-100 border-2 border-gray-200 rounded-2xl px-5 py-3 text-gray-900 hover:bg-gray-200 transition-colors font-semibold flex items-center gap-2"
           :class="{
             'bg-blue-500 text-white border-blue-500':

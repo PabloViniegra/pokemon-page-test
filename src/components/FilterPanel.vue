@@ -5,20 +5,8 @@ import { TYPE_COLORS } from '../types/pokemon'
 
 const filtersStore = useFiltersStore()
 const { selectedTypes, showFavoritesOnly } = storeToRefs(filtersStore)
+const { toggleType, toggleFavoritesOnly } = filtersStore
 const availableTypes = Object.keys(TYPE_COLORS)
-
-function toggleType(type: string) {
-  const index = selectedTypes.value.indexOf(type)
-  if (index > -1) {
-    selectedTypes.value.splice(index, 1)
-  } else {
-    selectedTypes.value.push(type)
-  }
-}
-
-function toggleFavoritesOnly() {
-  showFavoritesOnly.value = !showFavoritesOnly.value
-}
 </script>
 
 <template>
