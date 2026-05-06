@@ -1,0 +1,77 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import { getPokemonImageUrl } from '../helpers/pokemon-api'
+import { TYPE_COLORS } from '../types/pokemon'
+
+const props = defineProps<{
+    id: number | null
+    name: string | null
+    types: string[]
+    index: number
+}>()
+
+const emit = defineEmits<{
+    add: [index: number]
+    remove: [id: number]
+}>()
+
+const isEmpty = computed(() => props.id === null)
+
+const imageUrl = computed(() => {
+    if (props.id === null) return null
+    return getPokemonImageUrl(props.id)
+})
+
+const typeColors = computed(() => {
+    return props.types.map(t => TYPE_COLORS[t]).filter(Boolean)
+})
+</script>
+
+<template>
+  <div
+    class="relative rounded-2xl border-2 transition-all duration-200 overflow-hidden"
+    :class="isEmpty
+      ? 'border-dashed border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100 cursor-pointer'
+      : 'border-gray-200 bg-white hover:shadow-lg hover:-translate-y-1'
+    "
+    @click="isEmpty && $emit('add', index)"
+  >
+    <div v-if="isEmpty" class="flex flex-col items-center justify-center py-6 px-4 gap-2 min-h-[140px]">
+      <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-400">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+      </div>
+      <span class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Slot {{ index + 1 }}</span>
+    </div>
+
+    <div v-else class="flex flex-col items-center py-4 px-3 gap-2 min-h-[140px]">
+      <button
+        class="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 hover:bg-red-100 text-gray-400 hover:text-red-500 transition-colors z-10"
+        aria-label="Remove Pokémon"
+        @click.stop="$emit('remove', id!)"
+      >
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+
+      <img
+        :src="imageUrl!"
+        :alt="name!"
+        class="w-16 h-16 object-contain"
+      >
+      <p class="text-sm font-bold capitalize text-gray-800 text-center leading-tight">{{ name }}</p>
+      <div class="flex gap-1">
+        <span
+          v-for="(tc, i) in typeColors"
+          :key="i"
+          class="text-[10px] font-bold text-white px-2 py-0.5 rounded-full"
+          :style="{ backgroundColor: tc.color }"
+        >
+          {{ types[i] }}
+        </span>
+      </div>
+    </div>
+  </div>
+</template>
