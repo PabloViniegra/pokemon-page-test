@@ -8,13 +8,13 @@ import { pokemonKeys } from '../composables/usePokemonQueries'
 import { useFavoritesStore } from '../stores/favorites'
 
 const props = defineProps<{
-    name: string
-    url: string
+  name: string
+  url: string
 }>()
 
 defineEmits<{
-    select: [name: string]
-    hover: [name: string]
+  select: [name: string]
+  hover: [name: string]
 }>()
 
 const favoritesStore = useFavoritesStore()
@@ -26,13 +26,13 @@ const paddedId = String(id).padStart(4, '0')
 const isFavorited = computed(() => favoritesStore.isFavorite(id))
 
 const types = computed(() => {
-    const cached = queryClient.getQueryData<PokemonDetail>(pokemonKeys.detail(id))
-    return cached?.types?.map(t => t.type.name) ?? []
+  const cached = queryClient.getQueryData<PokemonDetail>(pokemonKeys.detail(id))
+  return cached?.types?.map((t) => t.type.name) ?? []
 })
 
 const accentColor = computed(() => {
-    if (types.value.length === 0) return null
-    return TYPE_COLORS[types.value[0]]?.color ?? null
+  if (types.value.length === 0) return null
+  return TYPE_COLORS[types.value[0]]?.color ?? null
 })
 </script>
 
@@ -49,7 +49,9 @@ const accentColor = computed(() => {
       :style="{ backgroundColor: accentColor }"
     ></div>
 
-    <div class="relative aspect-square p-4 flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100/50">
+    <div
+      class="relative aspect-square p-4 flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100/50"
+    >
       <img
         :src="imageUrl"
         :alt="name"
@@ -63,17 +65,32 @@ const accentColor = computed(() => {
       <button
         @click.stop="favoritesStore.toggleFavorite(id)"
         class="fav-btn absolute top-3 left-3 w-9 h-9 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm shadow-md transition-all duration-200 hover:scale-115 active:scale-90"
-        :class="isFavorited ? 'fav-btn--active' : 'text-gray-300 hover:text-red-400'"
+        :class="
+          isFavorited ? 'fav-btn--active' : 'text-gray-300 hover:text-red-400'
+        "
         :aria-label="isFavorited ? 'Remove from favorites' : 'Add to favorites'"
       >
-        <svg class="w-5 h-5 fav-heart" :class="{ 'fav-heart--active': isFavorited }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+        <svg
+          class="w-5 h-5 fav-heart"
+          :class="{ 'fav-heart--active': isFavorited }"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+          />
         </svg>
       </button>
     </div>
 
     <div class="p-3 text-center border-t border-gray-100">
-      <p class="text-gray-800 font-bold capitalize text-sm tracking-wide group-hover:text-blue-600 transition-colors">
+      <p
+        class="text-gray-800 font-bold capitalize text-sm tracking-wide group-hover:text-blue-600 transition-colors"
+      >
         {{ name }}
       </p>
     </div>
@@ -97,9 +114,17 @@ const accentColor = computed(() => {
 }
 
 @keyframes heart-pop {
-  0% { transform: scale(1); }
-  30% { transform: scale(1.35); }
-  60% { transform: scale(0.9); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.35);
+  }
+  60% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 </style>

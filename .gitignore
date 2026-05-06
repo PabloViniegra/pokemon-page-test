@@ -28,3 +28,6 @@ opencode.json
 .opencode/**
 .agents/**
 skills-lock.json
+
+# Audit files
+audit*.json
