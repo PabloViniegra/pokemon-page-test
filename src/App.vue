@@ -8,6 +8,7 @@ const router = useRouter()
 
 const isHome = computed(() => route.name === 'home')
 const isTeamBuilder = computed(() => route.name === 'team-builder')
+const isGame = computed(() => route.name === 'game')
 </script>
 
 <template>
@@ -68,6 +69,17 @@ const isTeamBuilder = computed(() => route.name === 'team-builder')
             "
           >
             Team Builder
+          </button>
+          <button
+            @click="router.push({ name: 'game' })"
+            class="px-4 py-2 rounded-xl text-sm font-bold transition-colors"
+            :class="
+              isGame
+                ? 'bg-yellow-50 text-yellow-700'
+                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+            "
+          >
+            Who's that Pokémon?
           </button>
         </div>
       </div>

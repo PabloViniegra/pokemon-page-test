@@ -40,6 +40,7 @@ describe('bootstrap and app shell', () => {
     vi.doMock('../../../src/views/HomeView.vue', () => ({ default: { name: 'HomeView' } }))
     vi.doMock('../../../src/views/DetailView.vue', () => ({ default: { name: 'DetailView' } }))
     vi.doMock('../../../src/views/TeamBuilderView.vue', () => ({ default: { name: 'TeamBuilderView' } }))
+    vi.doMock('../../../src/views/GameView.vue', () => ({ default: { name: 'GameView' } }))
     vi.doMock('vue-router', () => ({
       createWebHistory: () => 'history',
       createRouter: (options: any) => ({ options }),
@@ -49,7 +50,7 @@ describe('bootstrap and app shell', () => {
     const scrollBehavior = router.options.scrollBehavior
 
     sessionStorage.setItem('pokedex-scroll-y', '420')
-    expect(router.options.routes).toHaveLength(3)
+    expect(router.options.routes).toHaveLength(4)
     expect(scrollBehavior({ name: 'home' }, { name: 'home' }, null)).toBe(false)
     expect(
       scrollBehavior({ name: 'home' }, { name: 'pokemon-detail' }, null),

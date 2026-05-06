@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import DetailView from '../views/DetailView.vue'
 import TeamBuilderView from '../views/TeamBuilderView.vue'
+import GameView from '../views/GameView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -21,6 +22,11 @@ const router = createRouter({
       path: '/team-builder',
       name: 'team-builder',
       component: TeamBuilderView,
+    },
+    {
+      path: '/game',
+      name: 'game',
+      component: GameView,
     },
   ],
   scrollBehavior(to, from, savedPosition) {
