@@ -4,11 +4,15 @@ import type { GameStatus } from '../../composables/useWhoIsThatPokemonGame'
 defineProps<{
   status: GameStatus
   attempts: number
+  hintUsed: boolean
+  currentHint: string
+  isSpeciesLoading: boolean
 }>()
 
 const emit = defineEmits<{
   guess: []
   next: []
+  hint: []
 }>()
 </script>
 
@@ -52,6 +56,27 @@ const emit = defineEmits<{
       >
         Next Pokémon
       </button>
+    </div>
+
+    <div
+      v-if="status !== 'correct'"
+      class="text-center mt-2"
+      aria-live="polite"
+    >
+      <button
+        v-if="!hintUsed"
+        @click="emit('hint')"
+        :disabled="isSpeciesLoading"
+        class="px-6 py-2 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all active:scale-95"
+      >
+        Give a hint
+      </button>
+      <p
+        v-else
+        class="text-amber-700 font-medium text-sm max-w-xs mx-auto"
+      >
+        {{ currentHint }}
+      </p>
     </div>
   </div>
 </template>

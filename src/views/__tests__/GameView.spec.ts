@@ -10,6 +10,7 @@ vi.mock('canvas-confetti', () => ({
 
 const mockMakeGuess = vi.fn()
 const mockNextRound = vi.fn()
+const mockUseHint = vi.fn()
 const mockRecordRound = vi.fn()
 
 const mockStatus = ref<'idle' | 'correct' | 'incorrect'>('idle')
@@ -18,6 +19,9 @@ const mockIsRevealed = ref(false)
 const mockIsLoading = ref(false)
 const mockIsError = ref(false)
 const mockCurrentPokemon = ref({ id: 25, name: 'pikachu' })
+const mockHintUsed = ref(false)
+const mockCurrentHint = ref('')
+const mockIsSpeciesLoading = ref(false)
 
 vi.mock('../../composables/useWhoIsThatPokemonGame', () => ({
   useWhoIsThatPokemonGame: vi.fn(() => ({
@@ -28,7 +32,11 @@ vi.mock('../../composables/useWhoIsThatPokemonGame', () => ({
     isLoading: mockIsLoading,
     isError: mockIsError,
     isRevealed: mockIsRevealed,
+    hintUsed: mockHintUsed,
+    currentHint: mockCurrentHint,
+    isSpeciesLoading: mockIsSpeciesLoading,
     makeGuess: mockMakeGuess,
+    useHint: mockUseHint,
     nextRound: mockNextRound,
   })),
 }))
@@ -65,6 +73,9 @@ describe('GameView', () => {
     mockIsLoading.value = false
     mockIsError.value = false
     mockCurrentPokemon.value = { id: 25, name: 'pikachu' }
+    mockHintUsed.value = false
+    mockCurrentHint.value = ''
+    mockIsSpeciesLoading.value = false
   })
 
   it('renders the game title and silhouette', async () => {
@@ -135,5 +146,37 @@ describe('GameView', () => {
     const btn = buttons.find((b) => b.text().includes('Next Pokémon'))
     await btn!.trigger('click')
     expect(mockNextRound).toHaveBeenCalled()
+  })
+
+  it('shows the Give a hint button when idle', async () => {
+    const wrapper = mountGameView()
+    await flushPromises()
+    expect(wrapper.text()).toContain('Give a hint')
+  })
+
+  it('calls useHint when Give a hint is clicked', async () => {
+    const wrapper = mountGameView()
+    await flushPromises()
+    const buttons = wrapper.findAll('button')
+    const btn = buttons.find((b) => b.text().includes('Give a hint'))
+    expect(btn).toBeDefined()
+    await btn!.trigger('click')
+    expect(mockUseHint).toHaveBeenCalled()
+  })
+
+  it('displays the hint after useHint is triggered', async () => {
+    mockHintUsed.value = true
+    mockCurrentHint.value = 'This Pokémon is an electric type.'
+    const wrapper = mountGameView()
+    await flushPromises()
+    expect(wrapper.text()).toContain('This Pokémon is an electric type.')
+    expect(wrapper.text()).not.toContain('Give a hint')
+  })
+
+  it('hides the hint button after a correct guess', async () => {
+    mockStatus.value = 'correct'
+    const wrapper = mountGameView()
+    await flushPromises()
+    expect(wrapper.text()).not.toContain('Give a hint')
   })
 })

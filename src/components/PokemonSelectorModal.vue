@@ -3,6 +3,8 @@ import { ref, computed, watch } from 'vue'
 import { useAllPokemonListQuery } from '../composables/usePokemonQueries'
 import { getPokemonId, getPokemonSpriteUrl } from '../helpers/pokemon-api'
 
+const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'.split('')
+
 const props = defineProps<{
   open: boolean
   excludeIds: number[]
@@ -14,6 +16,7 @@ const emit = defineEmits<{
 }>()
 
 const searchTerm = ref('')
+const selectedLetter = ref<string | null>(null)
 
 const { data: allListData, isLoading } = useAllPokemonListQuery(
   computed(() => props.open),
@@ -22,14 +25,27 @@ const { data: allListData, isLoading } = useAllPokemonListQuery(
 const allPokemon = computed(() => allListData.value?.results ?? [])
 
 const filteredPokemon = computed(() => {
-  const term = searchTerm.value.toLowerCase().trim()
   let list = allPokemon.value
-  if (term) {
-    list = list.filter((p) => p.name.toLowerCase().includes(term))
+  if (selectedLetter.value) {
+    list = list.filter((p) =>
+      p.name.toLowerCase().startsWith(selectedLetter.value!),
+    )
+  } else {
+    const term = searchTerm.value.toLowerCase().trim()
+    if (term) {
+      list = list.filter((p) => p.name.toLowerCase().includes(term))
+    }
   }
-  // Exclude already-selected Pokémon
   list = list.filter((p) => !props.excludeIds.includes(getPokemonId(p.url)))
   return list.slice(0, 100)
+})
+
+watch(searchTerm, (term) => {
+  if (term.trim()) selectedLetter.value = null
+})
+
+watch(selectedLetter, (letter) => {
+  if (letter) searchTerm.value = ''
 })
 
 const searchInputRef = ref<HTMLInputElement | null>(null)
@@ -52,6 +68,10 @@ function handleBackdropClick(e: MouseEvent) {
   if (e.target === e.currentTarget) {
     emit('close')
   }
+}
+
+function handleLetterClick(letter: string) {
+  selectedLetter.value = selectedLetter.value === letter ? null : letter
 }
 </script>
 
@@ -119,6 +139,33 @@ function handleBackdropClick(e: MouseEvent) {
                 class="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+            <div class="mt-4 flex items-center gap-1 overflow-x-auto pb-1">
+              <button
+                class="shrink-0 px-2.5 py-1 rounded-lg text-xs font-bold transition-colors"
+                :class="
+                  selectedLetter === null
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                "
+                @click="selectedLetter = null"
+              >
+                All
+              </button>
+              <button
+                v-for="letter in ALPHABET"
+                :key="letter"
+                class="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-xs font-bold transition-colors uppercase"
+                :class="
+                  selectedLetter === letter
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                "
+                :aria-label="`Filter by letter ${letter}`"
+                @click="handleLetterClick(letter)"
+              >
+                {{ letter }}
+              </button>
+            </div>
           </div>
 
           <div class="flex-1 overflow-y-auto p-2">
@@ -143,7 +190,10 @@ function handleBackdropClick(e: MouseEvent) {
               v-else-if="filteredPokemon.length === 0"
               class="text-center py-12"
             >
-              <p class="text-gray-400 font-medium">No Pokémon found</p>
+              <p v-if="selectedLetter" class="text-gray-400 font-medium">
+                No Pokémon found starting with "{{ selectedLetter.toUpperCase() }}"
+              </p>
+              <p v-else class="text-gray-400 font-medium">No Pokémon found</p>
             </div>
 
             <div v-else class="grid grid-cols-1 gap-1">

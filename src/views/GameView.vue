@@ -15,7 +15,11 @@ const {
   isLoading,
   isError,
   isRevealed,
+  currentHint,
+  hintUsed,
+  isSpeciesLoading,
   makeGuess,
+  useHint,
   nextRound,
 } = useWhoIsThatPokemonGame()
 
@@ -49,6 +53,10 @@ function handleGuess(name: string) {
 
 function handleNext() {
   nextRound()
+}
+
+function handleHint() {
+  useHint()
 }
 </script>
 
@@ -110,8 +118,12 @@ function handleNext() {
         <GameControls
           :status="status"
           :attempts="attempts"
+          :hint-used="hintUsed"
+          :current-hint="currentHint"
+          :is-species-loading="isSpeciesLoading"
           @guess="showModal = true"
           @next="handleNext"
+          @hint="handleHint"
         />
       </template>
     </div>
