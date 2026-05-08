@@ -120,12 +120,14 @@ describe('bootstrap and app shell', () => {
     expect(wrapper.find('.devtools').exists()).toBe(true)
     expect(wrapper.html()).toContain('bg-red-50 text-red-700')
 
-    const pokedexButtons = wrapper
-      .findAll('button')
-      .filter((button) => button.text().trim() === 'Pokédex')
+    const brandHomeButton = findButtonByText(wrapper, 'Pokédex')
+    const navHomeButton = findButtonByText(wrapper, 'Dex')
 
-    await pokedexButtons[0].trigger('click')
-    await pokedexButtons[1].trigger('click')
+    expect(brandHomeButton).toBeDefined()
+    expect(navHomeButton).toBeDefined()
+
+    await brandHomeButton!.trigger('click')
+    await navHomeButton!.trigger('click')
     expect(push).toHaveBeenCalledWith({ name: 'home' })
 
     route.name = 'team-builder'

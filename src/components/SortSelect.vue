@@ -6,7 +6,7 @@ const model = defineModel<string>({ default: 'id-asc' })
   <select
     v-model="model"
     aria-label="Sort Pokémon"
-    class="bg-gray-100 border-2 border-gray-200 rounded-2xl px-5 py-3 text-gray-900 focus:outline-none focus:border-blue-500 cursor-pointer font-semibold"
+    class="w-full bg-gray-100 border-2 border-gray-200 rounded-2xl px-5 py-3 text-gray-900 focus:outline-none focus:border-blue-500 cursor-pointer font-semibold md:w-auto"
   >
     <option value="id-asc">ID ↑</option>
     <option value="id-desc">ID ↓</option>

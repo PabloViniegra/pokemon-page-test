@@ -66,8 +66,8 @@ function handleRemove(id: number) {
           background-size: 100px 100px;
         "
       ></div>
-      <div class="relative z-10 max-w-7xl mx-auto px-4 py-8">
-        <div class="flex items-center gap-4 mb-4">
+      <div class="relative z-10 max-w-7xl mx-auto px-4 py-6 sm:py-8">
+        <div class="flex items-center gap-4 mb-3 sm:mb-4">
           <button
             @click="router.back()"
             class="flex items-center gap-2 text-white/80 hover:text-white transition-colors font-semibold text-sm"
@@ -89,7 +89,7 @@ function handleRemove(id: number) {
           </button>
         </div>
         <h1
-          class="text-4xl md:text-5xl font-black tracking-tighter text-white"
+          class="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter text-white"
           style="
             font-family: 'Fredoka', sans-serif;
             text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.2);
@@ -106,8 +106,8 @@ function handleRemove(id: number) {
       </div>
     </header>
 
-    <div class="max-w-7xl mx-auto px-4 py-8 space-y-8">
-      <section class="page-panel rounded-3xl border-2 border-gray-100 p-6">
+    <div class="max-w-7xl mx-auto px-4 py-6 sm:py-8 space-y-6 sm:space-y-8">
+      <section class="page-panel rounded-3xl border-2 border-gray-100 p-4 sm:p-6">
         <div class="flex items-center justify-between mb-5">
           <h2 class="text-xl font-bold text-gray-900">
             Your Team
@@ -124,7 +124,7 @@ function handleRemove(id: number) {
           </button>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           <TeamSlot
             v-for="slot in slots"
             :key="slot.index"

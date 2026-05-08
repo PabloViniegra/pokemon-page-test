@@ -61,10 +61,10 @@ function handleHint() {
 </script>
 
 <template>
-  <div class="app-page max-w-2xl mx-auto px-4 py-10">
-    <div class="text-center mb-10">
+  <div class="app-page max-w-2xl mx-auto px-4 py-6 sm:py-10">
+    <div class="text-center mb-6 sm:mb-10">
       <h1
-        class="text-4xl md:text-5xl font-black tracking-tight text-gray-900 mb-2"
+        class="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-gray-900 mb-2"
         style="font-family: 'Fredoka', sans-serif"
       >
         Who's that Pokémon?
@@ -74,7 +74,7 @@ function handleHint() {
       </p>
     </div>
 
-    <div class="game-stage rounded-3xl shadow-xl border border-gray-100 p-6 md:p-10">
+    <div class="game-stage rounded-3xl shadow-xl border border-gray-100 p-4 sm:p-6 md:p-10">
       <div v-if="isLoading" class="flex flex-col items-center py-16 gap-4">
         <div class="relative w-12 h-12">
           <div class="absolute inset-0 border-4 border-gray-200 rounded-full"></div>
@@ -128,10 +128,10 @@ function handleHint() {
       </template>
     </div>
 
-    <div class="mt-8 flex items-center justify-center gap-6 text-sm text-gray-400 font-medium">
-      <div>Rounds: <span class="text-gray-700 font-bold">{{ stats.totalRoundsPlayed }}</span></div>
-      <div>Correct: <span class="text-gray-700 font-bold">{{ stats.totalCorrectGuesses }}</span></div>
-      <div>Accuracy: <span class="text-gray-700 font-bold">
+    <div class="mt-6 sm:mt-8 grid grid-cols-3 sm:flex sm:items-center sm:justify-center gap-3 sm:gap-6 text-sm text-gray-400 font-medium">
+      <div class="text-center sm:text-left">Rounds: <span class="text-gray-700 font-bold">{{ stats.totalRoundsPlayed }}</span></div>
+      <div class="text-center sm:text-left">Correct: <span class="text-gray-700 font-bold">{{ stats.totalCorrectGuesses }}</span></div>
+      <div class="text-center sm:text-left">Accuracy: <span class="text-gray-700 font-bold">
         {{ stats.totalRoundsPlayed > 0 ? Math.round((stats.totalCorrectGuesses / stats.totalRoundsPlayed) * 100) : 0 }}%
       </span></div>
     </div>

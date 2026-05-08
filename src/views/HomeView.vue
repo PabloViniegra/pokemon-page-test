@@ -152,16 +152,16 @@ onBeforeRouteLeave(() => {
           background-size: 100px 100px;
         "
       ></div>
-      <div class="relative z-10 max-w-7xl mx-auto px-4 py-10 text-center">
-        <div class="pokemon-logo-wrapper mb-5">
+      <div class="relative z-10 max-w-7xl mx-auto px-4 py-8 sm:py-10 text-center">
+        <div class="pokemon-logo-wrapper mb-4 sm:mb-5">
           <img
             :src="pokemonLogo"
             alt="Pokémon"
-            class="pokemon-logo-img mx-auto w-56 md:w-72"
+            class="pokemon-logo-img mx-auto w-44 sm:w-56 md:w-72"
           />
         </div>
         <h1
-          class="text-6xl md:text-7xl font-black tracking-tighter mb-3 text-white"
+          class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tighter mb-3 text-white"
           style="
             font-family: 'Fredoka', sans-serif;
             text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.2);
@@ -180,7 +180,7 @@ onBeforeRouteLeave(() => {
     </header>
 
     <section
-      class="app-surface sticky top-14 z-30 border-b-2 border-gray-200 shadow-sm px-4 py-4"
+      class="app-surface sticky top-20 sm:top-14 z-30 border-b-2 border-gray-200 shadow-sm px-4 py-4"
     >
       <div
         class="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 items-center"

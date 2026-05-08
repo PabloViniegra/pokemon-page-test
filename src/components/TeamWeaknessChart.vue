@@ -161,20 +161,32 @@ const vulnerabilitySummary = computed(() => {
 
       <div v-else class="space-y-3">
         <div v-for="item in sortedAnalysis" :key="item.type" class="group">
-          <div class="flex items-center gap-3">
-            <!-- Type badge -->
-            <div
-              class="w-24 shrink-0 rounded-xl px-2 py-1 text-center"
-              :style="{
-                backgroundColor: TYPE_COLORS[item.type]?.color ?? '#999',
-              }"
-            >
-              <span class="text-xs font-bold text-white capitalize">{{
-                item.type
-              }}</span>
+          <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+            <div class="flex items-center justify-between gap-2">
+              <div
+                class="w-24 shrink-0 rounded-xl px-2 py-1 text-center"
+                :style="{
+                  backgroundColor: TYPE_COLORS[item.type]?.color ?? '#999',
+                }"
+              >
+                <span class="text-xs font-bold text-white capitalize">{{
+                  item.type
+                }}</span>
+              </div>
+
+              <div class="shrink-0 flex gap-2 text-[10px] font-semibold">
+                <span v-if="item.weakCount > 0" class="text-red-500"
+                  >{{ item.weakCount }} weak</span
+                >
+                <span v-if="item.resistantCount > 0" class="text-green-500"
+                  >{{ item.resistantCount }} resist</span
+                >
+                <span v-if="item.immuneCount > 0" class="text-gray-500"
+                  >{{ item.immuneCount }} immune</span
+                >
+              </div>
             </div>
 
-            <!-- Bar -->
             <div
               class="flex-1 h-8 bg-gray-100 rounded-xl overflow-hidden relative"
             >
@@ -191,19 +203,6 @@ const vulnerabilitySummary = computed(() => {
                   {{ item.averageEffectiveness.toFixed(2) }}x
                 </span>
               </div>
-            </div>
-
-            <!-- Counts -->
-            <div class="shrink-0 flex gap-2 text-[10px] font-semibold">
-              <span v-if="item.weakCount > 0" class="text-red-500"
-                >{{ item.weakCount }} weak</span
-              >
-              <span v-if="item.resistantCount > 0" class="text-green-500"
-                >{{ item.resistantCount }} resist</span
-              >
-              <span v-if="item.immuneCount > 0" class="text-gray-500"
-                >{{ item.immuneCount }} immune</span
-              >
             </div>
           </div>
         </div>

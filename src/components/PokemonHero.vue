@@ -52,7 +52,7 @@ const primaryTypeColor = computed(() => {
     }"
   >
     <div
-      class="absolute right-0 top-0 w-96 h-96 opacity-5 transform translate-x-1/4 -translate-y-1/4"
+      class="absolute right-0 top-0 w-64 sm:w-96 h-64 sm:h-96 opacity-5 transform translate-x-1/4 -translate-y-1/4"
     >
       <svg viewBox="0 0 100 100" class="w-full h-full">
         <circle cx="50" cy="50" r="50" fill="#333" />
@@ -71,18 +71,18 @@ const primaryTypeColor = computed(() => {
       </svg>
     </div>
 
-    <div class="relative z-10 max-w-6xl mx-auto px-4 py-12">
+    <div class="relative z-10 max-w-6xl mx-auto px-4 py-8 sm:py-12">
       <button
         @click="$emit('back')"
-        class="mb-8 flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-colors font-bold text-sm group"
+        class="mb-6 sm:mb-8 flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-colors font-bold text-sm group"
       >
         <span class="group-hover:-translate-x-1 transition-transform">←</span>
         Back to Pokédex
       </button>
 
-      <div class="grid md:grid-cols-2 gap-12 items-center">
+      <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
         <div class="relative flex flex-col items-center">
-          <div class="relative w-72 h-72 md:w-96 md:h-96">
+          <div class="relative w-56 h-56 sm:w-72 sm:h-72 md:w-96 md:h-96">
             <div
               class="absolute inset-0 rounded-full opacity-20 blur-3xl"
               :style="{ backgroundColor: primaryTypeColor }"
@@ -111,9 +111,9 @@ const primaryTypeColor = computed(() => {
             <p class="text-gray-600 font-bold text-sm mb-1">
               #{{ String(pokemon.id).padStart(4, '0') }}
             </p>
-            <div class="flex items-center gap-3">
+              <div class="flex items-center gap-3 flex-wrap">
               <h1
-                class="text-5xl md:text-6xl font-black capitalize tracking-tight text-gray-900"
+                class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black capitalize tracking-tight text-gray-900"
                 style="font-family: 'Fredoka', sans-serif"
               >
                 {{ pokemon.name }}
