@@ -34,7 +34,7 @@ const primaryTypeColor = computed(() => {
 </script>
 
 <template>
-  <main class="min-h-screen bg-[#f8f8f8]">
+  <main class="app-page min-h-screen">
     <div
       v-if="isLoading"
       class="flex flex-col items-center justify-center min-h-screen gap-6"

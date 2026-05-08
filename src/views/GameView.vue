@@ -53,7 +53,7 @@ function handleNext() {
 </script>
 
 <template>
-  <div class="max-w-2xl mx-auto px-4 py-10">
+  <div class="app-page max-w-2xl mx-auto px-4 py-10">
     <div class="text-center mb-10">
       <h1
         class="text-4xl md:text-5xl font-black tracking-tight text-gray-900 mb-2"
@@ -66,9 +66,7 @@ function handleNext() {
       </p>
     </div>
 
-    <div
-      class="bg-white rounded-3xl shadow-xl border border-gray-100 p-6 md:p-10"
-    >
+    <div class="game-stage rounded-3xl shadow-xl border border-gray-100 p-6 md:p-10">
       <div v-if="isLoading" class="flex flex-col items-center py-16 gap-4">
         <div class="relative w-12 h-12">
           <div class="absolute inset-0 border-4 border-gray-200 rounded-full"></div>

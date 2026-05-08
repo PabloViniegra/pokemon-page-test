@@ -67,11 +67,11 @@ function handleBackdropClick(e: MouseEvent) {
     >
       <div
         v-if="open"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+        class="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
         @click="handleBackdropClick"
       >
         <div
-          class="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col overflow-hidden"
+          class="modal-surface bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col overflow-hidden"
           @click.stop
         >
           <div class="p-5 border-b border-gray-100">

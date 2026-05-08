@@ -141,13 +141,8 @@ onBeforeRouteLeave(() => {
 </script>
 
 <template>
-  <main class="relative">
-    <header
-      class="relative overflow-hidden"
-      style="
-        background: linear-gradient(135deg, #f00 0%, #cc0000 50%, #a00000 100%);
-      "
-    >
+  <main class="app-page relative">
+    <header class="pokemon-page-header pokemon-page-header--home relative overflow-hidden">
       <div
         class="absolute inset-0 opacity-10"
         style="
@@ -185,7 +180,7 @@ onBeforeRouteLeave(() => {
     </header>
 
     <section
-      class="sticky top-14 z-30 bg-white border-b-2 border-gray-200 shadow-sm px-4 py-4"
+      class="app-surface sticky top-14 z-30 border-b-2 border-gray-200 shadow-sm px-4 py-4"
     >
       <div
         class="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 items-center"

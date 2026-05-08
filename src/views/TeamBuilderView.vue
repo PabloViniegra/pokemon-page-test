@@ -55,19 +55,8 @@ function handleRemove(id: number) {
 </script>
 
 <template>
-  <main class="min-h-screen bg-[#f8f8f8]">
-    <!-- Header -->
-    <header
-      class="relative overflow-hidden"
-      style="
-        background: linear-gradient(
-          135deg,
-          #3b4cca 0%,
-          #2a3693 50%,
-          #1a2266 100%
-        );
-      "
-    >
+  <main class="app-page min-h-screen">
+    <header class="pokemon-page-header pokemon-page-header--team relative overflow-hidden">
       <div
         class="absolute inset-0 opacity-10"
         style="
@@ -118,8 +107,7 @@ function handleRemove(id: number) {
     </header>
 
     <div class="max-w-7xl mx-auto px-4 py-8 space-y-8">
-      <!-- Team slots -->
-      <section class="bg-white rounded-3xl border-2 border-gray-100 p-6">
+      <section class="page-panel rounded-3xl border-2 border-gray-100 p-6">
         <div class="flex items-center justify-between mb-5">
           <h2 class="text-xl font-bold text-gray-900">
             Your Team
@@ -150,11 +138,9 @@ function handleRemove(id: number) {
         </div>
       </section>
 
-      <!-- Weakness chart -->
       <TeamWeaknessChart :team-types="teamTypes" />
     </div>
 
-    <!-- Selector modal -->
     <PokemonSelectorModal
       :open="showModal"
       :exclude-ids="teamIds"

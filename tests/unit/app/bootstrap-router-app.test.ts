@@ -2,6 +2,12 @@ import { reactive } from 'vue'
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+function findButtonByText(wrapper: ReturnType<typeof mount>, label: string) {
+  return wrapper
+    .findAll('button')
+    .find((button) => button.text().replace(/\s+/g, ' ').includes(label))
+}
+
 describe('bootstrap and app shell', () => {
   beforeEach(() => {
     vi.resetModules()
@@ -19,7 +25,14 @@ describe('bootstrap and app shell', () => {
     const mountApp = vi.fn()
     const createApp = vi.fn(() => ({ use, mount: mountApp }))
 
-    vi.doMock('vue', () => ({ createApp }))
+    vi.doMock('vue', async (importOriginal) => {
+      const actual = await importOriginal<typeof import('vue')>()
+
+      return {
+        ...actual,
+        createApp,
+      }
+    })
     vi.doMock('../../../src/App.vue', () => ({ default: { name: 'AppStub' } }))
     vi.doMock('../../../src/router', () => ({ default: { name: 'router-stub' } }))
     vi.doMock('../../../src/stores/pinia', () => ({ pinia: { name: 'pinia-stub' } }))
@@ -107,8 +120,12 @@ describe('bootstrap and app shell', () => {
     expect(wrapper.find('.devtools').exists()).toBe(true)
     expect(wrapper.html()).toContain('bg-red-50 text-red-700')
 
-    await wrapper.findAll('button')[0].trigger('click')
-    await wrapper.findAll('button')[1].trigger('click')
+    const pokedexButtons = wrapper
+      .findAll('button')
+      .filter((button) => button.text().trim() === 'Pokédex')
+
+    await pokedexButtons[0].trigger('click')
+    await pokedexButtons[1].trigger('click')
     expect(push).toHaveBeenCalledWith({ name: 'home' })
 
     route.name = 'team-builder'
@@ -116,7 +133,8 @@ describe('bootstrap and app shell', () => {
     await wrapper.vm.$nextTick()
 
     expect(wrapper.html()).toContain('bg-blue-50 text-blue-700')
-    await wrapper.findAll('button')[2].trigger('click')
+    const teamBuilderButton = findButtonByText(wrapper, 'Team Builder')
+    await teamBuilderButton!.trigger('click')
     expect(push).toHaveBeenCalledWith({ name: 'team-builder' })
   })
 })

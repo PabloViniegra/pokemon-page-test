@@ -39,7 +39,7 @@ const accentColor = computed(() => {
 
 <template>
   <div
-    class="group relative bg-white rounded-3xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border-2 border-gray-100"
+    class="pokemon-card group relative bg-white rounded-3xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border-2 border-gray-100"
     :class="accentColor ? 'hover:border-gray-200' : 'hover:border-gray-200'"
     @click="$emit('select', name)"
     @mouseenter="$emit('hover', name)"
@@ -51,7 +51,7 @@ const accentColor = computed(() => {
     ></div>
 
     <div
-      class="relative aspect-square p-4 flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100/50"
+      class="pokemon-card__art relative aspect-square p-4 flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100/50"
     >
       <img
         :src="imageUrl"

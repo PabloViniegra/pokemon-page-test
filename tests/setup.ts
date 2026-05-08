@@ -4,6 +4,8 @@ beforeEach(() => {
   localStorage.clear()
   sessionStorage.clear()
   document.body.innerHTML = ''
+  document.documentElement.classList.remove('dark')
+  document.documentElement.style.colorScheme = 'light'
   vi.restoreAllMocks()
   vi.useRealTimers()
   vi.stubGlobal('fetch', vi.fn())

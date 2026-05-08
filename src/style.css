@@ -27,6 +27,31 @@
   --color-gray-800: #1f2937;
   --color-gray-900: #111827;
   --color-black: #0a0a0a;
+  --app-bg: #f8f8f8;
+  --app-text: #111827;
+  --app-surface: rgba(255, 255, 255, 0.9);
+  --app-surface-solid: #ffffff;
+  --app-surface-soft: #f9fafb;
+  --app-surface-muted: #f3f4f6;
+  --app-border: #e5e7eb;
+  --app-border-strong: #d1d5db;
+  --app-text-muted: #4b5563;
+  --app-text-soft: #6b7280;
+  --app-text-faint: #9ca3af;
+}
+
+:root.dark {
+  --app-bg: #060912;
+  --app-text: #e7eefc;
+  --app-surface: rgba(10, 16, 32, 0.82);
+  --app-surface-solid: #10182b;
+  --app-surface-soft: #121d34;
+  --app-surface-muted: #18233d;
+  --app-border: #253452;
+  --app-border-strong: #334a73;
+  --app-text-muted: #c6d2eb;
+  --app-text-soft: #97aacd;
+  --app-text-faint: #7185ab;
 }
 
 * {
@@ -41,12 +66,25 @@ body {
 
 body {
   font-family: 'Nunito', sans-serif;
-  background-color: var(--color-off-white);
-  color: var(--color-gray-900);
+  background:
+    radial-gradient(circle at top left, rgba(255, 203, 5, 0.1), transparent 24%),
+    linear-gradient(180deg, #fffdf5 0%, var(--app-bg) 24%, var(--app-bg) 100%);
+  color: var(--app-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
   overflow-x: hidden;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    background 0.3s ease;
+}
+
+html.dark body {
+  background:
+    radial-gradient(circle at top right, rgba(147, 51, 234, 0.18), transparent 26%),
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.15), transparent 28%),
+    linear-gradient(180deg, #060912 0%, #0a1020 40%, #060912 100%);
 }
 
 ::selection {
@@ -81,6 +119,349 @@ html {
 
 .font-mono {
   font-family: 'JetBrains Mono', monospace;
+}
+
+.app-shell {
+  background-color: transparent;
+  color: var(--app-text);
+}
+
+.app-page {
+  background-color: transparent;
+}
+
+.app-nav {
+  background: var(--app-surface);
+  border-color: var(--app-border);
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.app-surface,
+.page-panel,
+.game-stage,
+.modal-surface {
+  background: var(--app-surface-solid);
+  border-color: var(--app-border);
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.page-panel,
+.game-stage,
+.modal-surface {
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+}
+
+.pokemon-page-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.pokemon-page-header--home {
+  background: linear-gradient(135deg, #ff0000 0%, #cc0000 50%, #a00000 100%);
+}
+
+.pokemon-page-header--team {
+  background: linear-gradient(135deg, #3b4cca 0%, #2a3693 50%, #1a2266 100%);
+}
+
+html.dark .app-nav {
+  background: rgba(6, 12, 24, 0.8);
+  border-color: rgba(83, 108, 157, 0.35);
+  box-shadow: 0 16px 40px rgba(2, 6, 23, 0.35);
+}
+
+html.dark .page-panel,
+html.dark .game-stage,
+html.dark .modal-surface {
+  background:
+    linear-gradient(180deg, rgba(17, 24, 43, 0.98), rgba(10, 16, 29, 0.98));
+  border-color: rgba(90, 110, 154, 0.28);
+  box-shadow: 0 28px 80px rgba(2, 6, 23, 0.5);
+}
+
+html.dark .app-surface {
+  background: rgba(10, 16, 29, 0.92);
+  border-color: rgba(90, 110, 154, 0.28);
+}
+
+html.dark .pokemon-page-header--home {
+  background:
+    linear-gradient(135deg, #27113f 0%, #0f1f43 48%, #07101f 100%),
+    radial-gradient(circle at 20% 20%, rgba(255, 203, 5, 0.18), transparent 28%);
+}
+
+html.dark .pokemon-page-header--team {
+  background:
+    linear-gradient(135deg, #101a3d 0%, #162757 45%, #2a1457 100%),
+    radial-gradient(circle at 80% 18%, rgba(96, 165, 250, 0.18), transparent 26%);
+}
+
+.theme-toggle {
+  position: fixed;
+  top: 0.5rem;
+  right: 0.75rem;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.6rem 0.45rem 0.45rem;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 999px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(255, 244, 197, 0.96));
+  box-shadow: 0 16px 30px rgba(15, 23, 42, 0.18);
+  backdrop-filter: blur(14px);
+  cursor: pointer;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.theme-toggle:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.22);
+}
+
+.theme-toggle:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 3px;
+}
+
+.theme-toggle--dark {
+  border-color: rgba(129, 140, 248, 0.4);
+  background:
+    linear-gradient(135deg, rgba(16, 24, 43, 0.96), rgba(41, 25, 72, 0.96));
+  box-shadow: 0 18px 36px rgba(2, 6, 23, 0.42);
+}
+
+.theme-toggle__track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 4.4rem;
+  min-width: 4.4rem;
+  height: 2.4rem;
+  padding: 0 0.32rem;
+  border-radius: 999px;
+  background:
+    linear-gradient(135deg, rgba(255, 239, 167, 0.95), rgba(255, 203, 5, 0.85));
+  overflow: hidden;
+}
+
+.theme-toggle--dark .theme-toggle__track {
+  background:
+    linear-gradient(135deg, rgba(37, 57, 110, 0.95), rgba(93, 51, 164, 0.92));
+}
+
+.theme-toggle__portrait {
+  position: relative;
+  z-index: 1;
+  width: 1.15rem;
+  height: 1.15rem;
+  object-fit: contain;
+  opacity: 0.75;
+  filter: drop-shadow(0 2px 4px rgba(15, 23, 42, 0.2));
+}
+
+.theme-toggle__thumb {
+  position: absolute;
+  top: 0.18rem;
+  left: 0.2rem;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.22);
+  transition:
+    transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 0.25s ease;
+}
+
+.theme-toggle--dark .theme-toggle__thumb {
+  transform: translateX(1.95rem);
+  background: rgba(12, 18, 35, 0.98);
+}
+
+.theme-toggle__thumb-image {
+  width: 1.5rem;
+  height: 1.5rem;
+  object-fit: contain;
+}
+
+.theme-toggle__label {
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #5b3f00;
+}
+
+.theme-toggle--dark .theme-toggle__label {
+  color: #dbe7ff;
+}
+
+html.dark .bg-\[\#f8f8f8\] {
+  background-color: transparent;
+}
+
+html.dark .bg-white {
+  background-color: var(--app-surface-solid);
+}
+
+html.dark .bg-white\/90 {
+  background-color: rgba(10, 16, 29, 0.9);
+}
+
+html.dark .bg-gray-50 {
+  background-color: var(--app-surface-soft);
+}
+
+html.dark .bg-gray-100 {
+  background-color: var(--app-surface-muted);
+}
+
+html.dark .bg-gray-200 {
+  background-color: var(--app-border);
+}
+
+html.dark .bg-red-50 {
+  background-color: rgba(127, 29, 29, 0.22);
+}
+
+html.dark .bg-red-50\/80 {
+  background-color: rgba(127, 29, 29, 0.38);
+}
+
+html.dark .bg-blue-50 {
+  background-color: rgba(30, 64, 175, 0.24);
+}
+
+html.dark .bg-yellow-50 {
+  background-color: rgba(161, 98, 7, 0.24);
+}
+
+html.dark .text-gray-900 {
+  color: var(--app-text);
+}
+
+html.dark .text-gray-800 {
+  color: #dde8ff;
+}
+
+html.dark .text-gray-700 {
+  color: var(--app-text-muted);
+}
+
+html.dark .text-gray-600 {
+  color: #afc1e4;
+}
+
+html.dark .text-gray-500 {
+  color: var(--app-text-soft);
+}
+
+html.dark .text-gray-400 {
+  color: var(--app-text-faint);
+}
+
+html.dark .text-gray-300 {
+  color: #8ea3ca;
+}
+
+html.dark .text-red-700 {
+  color: #fca5a5;
+}
+
+html.dark .text-blue-700 {
+  color: #93c5fd;
+}
+
+html.dark .text-yellow-700 {
+  color: #fcd34d;
+}
+
+html.dark .border-gray-100,
+html.dark .border-gray-200,
+html.dark .border-gray-300 {
+  border-color: var(--app-border);
+}
+
+html.dark .hover\:bg-gray-50:hover {
+  background-color: #15203a;
+}
+
+html.dark .hover\:bg-gray-100:hover {
+  background-color: #1d2a47;
+}
+
+html.dark .hover\:bg-gray-200:hover {
+  background-color: #233256;
+}
+
+html.dark .hover\:text-gray-900:hover {
+  color: var(--app-text);
+}
+
+html.dark .placeholder-gray-400::placeholder {
+  color: var(--app-text-faint);
+}
+
+html.dark .from-gray-50 {
+  --tw-gradient-from: #131f37 var(--tw-gradient-from-position);
+  --tw-gradient-to: rgba(19, 31, 55, 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+html.dark .to-gray-100\/50 {
+  --tw-gradient-to: rgba(24, 35, 61, 0.5) var(--tw-gradient-to-position);
+}
+
+html.dark .fav-btn,
+html.dark .fav-hero-btn {
+  background: rgba(12, 18, 35, 0.9);
+  border-color: var(--app-border);
+  box-shadow: 0 12px 26px rgba(2, 6, 23, 0.28);
+}
+
+html.dark .fav-btn--active {
+  background: rgba(127, 29, 29, 0.42);
+}
+
+::view-transition-new(root) {
+  mask: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><circle cx="20" cy="20" r="20" fill="white"/></svg>')
+    center / 0 no-repeat;
+  animation: theme-toggle-reveal 0.95s ease-in-out;
+  animation-fill-mode: both;
+}
+
+::view-transition-old(root),
+.dark::view-transition-old(root) {
+  animation: none;
+  animation-fill-mode: both;
+  z-index: -1;
+}
+
+.dark::view-transition-new(root) {
+  animation: theme-toggle-reveal 0.95s ease-in-out;
+  animation-fill-mode: both;
+}
+
+@keyframes theme-toggle-reveal {
+  to {
+    mask-size: 200vmax;
+  }
 }
 
 @keyframes pokemon-logo-float {
@@ -125,6 +506,17 @@ html {
   filter: drop-shadow(0 0 18px rgba(255, 203, 5, 0.7))
     drop-shadow(0 0 35px rgba(255, 203, 5, 0.4)) !important;
   animation: none;
+}
+
+@media (max-width: 640px) {
+  .theme-toggle {
+    gap: 0;
+    padding-right: 0.45rem;
+  }
+
+  .theme-toggle__label {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

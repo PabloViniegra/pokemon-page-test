@@ -2,9 +2,15 @@
 import { VueQueryDevtools } from '@tanstack/vue-query-devtools'
 import { useRoute, useRouter } from 'vue-router'
 import { computed } from 'vue'
+import { getPokemonImageUrl } from './helpers/pokemon-api'
+import { useTheme } from './composables/useTheme'
 
 const route = useRoute()
 const router = useRouter()
+const { theme, isDark, toggleLabel, toggleTheme } = useTheme()
+
+const solgaleoArtwork = getPokemonImageUrl(791)
+const lunalaArtwork = getPokemonImageUrl(792)
 
 const isHome = computed(() => route.name === 'home')
 const isTeamBuilder = computed(() => route.name === 'team-builder')
@@ -12,14 +18,49 @@ const isGame = computed(() => route.name === 'game')
 </script>
 
 <template>
-  <div
-    class="min-h-screen bg-[#f8f8f8] text-gray-900 relative overflow-x-hidden"
-  >
+  <div class="app-shell min-h-screen text-gray-900 relative overflow-x-hidden">
+    <button
+      class="theme-toggle"
+      :class="{ 'theme-toggle--dark': isDark }"
+      :aria-label="toggleLabel"
+      :title="toggleLabel"
+      @click="toggleTheme"
+    >
+      <span class="theme-toggle__track" aria-hidden="true">
+        <img
+          :src="solgaleoArtwork"
+          alt=""
+          class="theme-toggle__portrait theme-toggle__portrait--light"
+          loading="eager"
+          decoding="async"
+        />
+        <img
+          :src="lunalaArtwork"
+          alt=""
+          class="theme-toggle__portrait theme-toggle__portrait--dark"
+          loading="eager"
+          decoding="async"
+        />
+        <span class="theme-toggle__thumb">
+          <img
+            :src="theme === 'dark' ? lunalaArtwork : solgaleoArtwork"
+            alt=""
+            class="theme-toggle__thumb-image"
+            loading="eager"
+            decoding="async"
+          />
+        </span>
+      </span>
+      <span class="theme-toggle__label">
+        {{ theme === 'dark' ? 'Lunala' : 'Solgaleo' }}
+      </span>
+    </button>
+
     <nav
-      class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200"
+      class="app-nav sticky top-0 z-50 backdrop-blur-md border-b border-gray-200"
     >
       <div
-        class="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between"
+        class="max-w-7xl mx-auto px-4 pr-24 sm:pr-32 h-14 flex items-center justify-between gap-3"
       >
         <button
           @click="router.push({ name: 'home' })"
@@ -47,10 +88,10 @@ const isGame = computed(() => route.name === 'game')
           </svg>
           Pokédex
         </button>
-        <div class="flex items-center gap-1">
+        <div class="flex items-center gap-1 min-w-0">
           <button
             @click="router.push({ name: 'home' })"
-            class="px-4 py-2 rounded-xl text-sm font-bold transition-colors"
+            class="px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-colors whitespace-nowrap"
             :class="
               isHome
                 ? 'bg-red-50 text-red-700'
@@ -61,7 +102,7 @@ const isGame = computed(() => route.name === 'game')
           </button>
           <button
             @click="router.push({ name: 'team-builder' })"
-            class="px-4 py-2 rounded-xl text-sm font-bold transition-colors"
+            class="px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-colors whitespace-nowrap"
             :class="
               isTeamBuilder
                 ? 'bg-blue-50 text-blue-700'
@@ -72,7 +113,7 @@ const isGame = computed(() => route.name === 'game')
           </button>
           <button
             @click="router.push({ name: 'game' })"
-            class="px-4 py-2 rounded-xl text-sm font-bold transition-colors"
+            class="px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-colors whitespace-nowrap"
             :class="
               isGame
                 ? 'bg-yellow-50 text-yellow-700'
