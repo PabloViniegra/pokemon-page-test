@@ -6,10 +6,10 @@ const mocks = vi.hoisted(() => ({
   beforeLeave: undefined as undefined | (() => void),
   toggleFilters: vi.fn(),
   isFavorite: vi.fn((id: number) => id === 25),
+  toggleFavorite: vi.fn(),
   prefetchPokemonDetail: vi.fn(),
   fetchNextPage: vi.fn(),
   refetch: vi.fn(),
-  refetchAllList: vi.fn(),
   observerCallback: undefined as undefined | (() => void),
   searchInput: { value: '', __v_isRef: true },
   selectedTypes: { value: [] as string[], __v_isRef: true },
@@ -20,15 +20,15 @@ const mocks = vi.hoisted(() => ({
   infiniteData: { value: undefined as any, __v_isRef: true },
   searchData: { value: undefined as any, __v_isRef: true },
   typeResults: { value: [] as any[], __v_isRef: true },
-  allListData: { value: undefined as any, __v_isRef: true },
+  favoriteResults: { value: [] as any[], __v_isRef: true },
   hasNextPage: { value: false, __v_isRef: true },
   isFetchingNextPage: { value: false, __v_isRef: true },
   isInfiniteLoading: { value: false, __v_isRef: true },
   isInfiniteError: { value: false, __v_isRef: true },
   isSearchLoading: { value: false, __v_isRef: true },
   isTypeLoading: { value: false, __v_isRef: true },
-  isAllListLoading: { value: false, __v_isRef: true },
-  isAllListError: { value: false, __v_isRef: true },
+  isFavoriteLoading: { value: false, __v_isRef: true },
+  isFavoriteError: { value: false, __v_isRef: true },
 }))
 
 vi.mock('pinia', () => ({
@@ -56,6 +56,8 @@ vi.mock('../../../src/stores/filters', () => ({
 vi.mock('../../../src/stores/favorites', () => ({
   useFavoritesStore: () => ({
     isFavorite: mocks.isFavorite,
+    toggleFavorite: mocks.toggleFavorite,
+    favorites: [25],
   }),
 }))
 
@@ -91,11 +93,10 @@ vi.mock('../../../src/composables/usePokemonQueries', () => ({
   usePrefetchPokemon: () => ({
     prefetchPokemonDetail: mocks.prefetchPokemonDetail,
   }),
-  useAllPokemonListQuery: () => ({
-    data: mocks.allListData,
-    isLoading: mocks.isAllListLoading,
-    isError: mocks.isAllListError,
-    refetch: mocks.refetchAllList,
+  useFavoritePokemonListQuery: () => ({
+    results: mocks.favoriteResults,
+    isLoading: mocks.isFavoriteLoading,
+    isError: mocks.isFavoriteError,
   }),
 }))
 
@@ -118,7 +119,6 @@ describe('HomeView', async () => {
     mocks.prefetchPokemonDetail.mockClear()
     mocks.fetchNextPage.mockClear()
     mocks.refetch.mockClear()
-    mocks.refetchAllList.mockClear()
     mocks.beforeLeave = undefined
     mocks.observerCallback = undefined
     mocks.searchInput.value = ''
@@ -130,15 +130,15 @@ describe('HomeView', async () => {
     mocks.infiniteData.value = undefined
     mocks.searchData.value = undefined
     mocks.typeResults.value = []
-    mocks.allListData.value = undefined
+    mocks.favoriteResults.value = []
     mocks.hasNextPage.value = false
     mocks.isFetchingNextPage.value = false
     mocks.isInfiniteLoading.value = false
     mocks.isInfiniteError.value = false
     mocks.isSearchLoading.value = false
     mocks.isTypeLoading.value = false
-    mocks.isAllListLoading.value = false
-    mocks.isAllListError.value = false
+    mocks.isFavoriteLoading.value = false
+    mocks.isFavoriteError.value = false
     sessionStorage.clear()
     Object.defineProperty(window, 'scrollY', { value: 250, configurable: true, writable: true })
   })
@@ -175,10 +175,10 @@ describe('HomeView', async () => {
 
     mocks.isInfiniteError.value = false
     mocks.showFavoritesOnly.value = true
-    mocks.isAllListError.value = true
+    mocks.isFavoriteError.value = true
     wrapper = mount(HomeView, { global: { stubs } })
     await wrapper.findAll('button').find((button) => button.text().includes('Try again'))!.trigger('click')
-    expect(mocks.refetchAllList).toHaveBeenCalled()
+    expect(mocks.refetch).toHaveBeenCalled()
   })
 
   it('renders the infinite list, toggles filters, prefetches, navigates, and fetches more', async () => {
@@ -238,13 +238,13 @@ describe('HomeView', async () => {
 
     mocks.sortBy.value = 'id-asc'
     wrapper = mount(HomeView, { global: { stubs } })
-    expect(wrapper.text()).toContain('bulbasaur,pikachu')
+    expect(wrapper.text()).toContain('pikachu,bulbasaur')
 
     mocks.sortBy.value = 'name-asc'
     wrapper = mount(HomeView, { global: { stubs } })
     expect(wrapper.text()).toContain('bulbasaur,pikachu')
 
-    mocks.sortBy.value = 'height-asc'
+    mocks.sortBy.value = 'name-desc'
     wrapper = mount(HomeView, { global: { stubs } })
     expect(wrapper.text()).toContain('pikachu,bulbasaur')
 
@@ -272,15 +272,13 @@ describe('HomeView', async () => {
 
     mocks.selectedTypes.value = []
     mocks.showFavoritesOnly.value = true
-    mocks.allListData.value = {
-      results: [
-        { name: 'pikachu', url: 'https://pokeapi.co/api/v2/pokemon/25/' },
-        { name: 'raichu', url: 'https://pokeapi.co/api/v2/pokemon/26/' },
-      ],
-    }
+    mocks.favoriteResults.value = [
+      { name: 'pikachu', url: 'https://pokeapi.co/api/v2/pokemon/25/', id: 25, types: [] },
+      { name: 'raichu', url: 'https://pokeapi.co/api/v2/pokemon/26/', id: 26, types: [] },
+    ]
     wrapper = mount(HomeView, { global: { stubs } })
     expect(wrapper.text()).toContain('pikachu')
-    expect(wrapper.text()).not.toContain('raichu')
+    expect(wrapper.text()).toContain('raichu')
 
     mocks.showFavoritesOnly.value = false
     mocks.selectedTypes.value = ['electric']
@@ -290,7 +288,7 @@ describe('HomeView', async () => {
 
     mocks.selectedTypes.value = []
     mocks.showFavoritesOnly.value = true
-    mocks.allListData.value = undefined
+    mocks.favoriteResults.value = []
     wrapper = mount(HomeView, { global: { stubs } })
     expect(wrapper.text()).not.toContain('pikachu')
   })

@@ -9,11 +9,13 @@ import {
   usePokemonMultiTypeQuery,
   usePokemonSearchQuery,
   usePrefetchPokemon,
-  useAllPokemonListQuery,
+  useFavoritePokemonListQuery,
 } from '../composables/usePokemonQueries'
 import { useDebounce } from '../composables/useDebounce'
 import { useIntersectionObserver } from '../composables/useIntersectionObserver'
-import { getPokemonId } from '../helpers/pokemon-api'
+import { getPokemonId, getPokemonImageUrl } from '../helpers/pokemon-api'
+import { TYPE_COLORS } from '../types/pokemon'
+import type { PokemonCardDisplay, PokemonShort, PokemonDetail } from '../types/pokemon'
 import SearchBar from '../components/SearchBar.vue'
 import FilterPanel from '../components/FilterPanel.vue'
 import SortSelect from '../components/SortSelect.vue'
@@ -53,46 +55,102 @@ const showFavoritesView = computed(
 )
 
 const {
-  data: allListData,
-  isLoading: isAllListLoading,
-  isError: isAllListError,
-  refetch: refetchAllList,
-} = useAllPokemonListQuery(showFavoritesView)
+  results: favoriteResults,
+  isLoading: isFavoriteLoading,
+  isError: isFavoriteError,
+} = useFavoritePokemonListQuery(() =>
+  showFavoritesView.value ? favoritesStore.favorites : [],
+)
 
 const allPokemon = computed(() => {
   if (!infiniteData.value) return []
   return infiniteData.value.pages.flatMap((page) => page.results)
 })
 
-  const activeList = computed(() => {
-    if (debouncedSearch.value.trim()) return searchData.value?.results || []
-    if (selectedTypes.value.length > 0) return typeResults.value
-    if (showFavoritesView.value) return allListData.value?.results || []
-    return allPokemon.value
-  })
+const baseActiveList = computed(() => {
+  if (debouncedSearch.value.trim()) return searchData.value?.results || []
+  if (selectedTypes.value.length > 0) return typeResults.value
+  if (showFavoritesView.value) return favoriteResults.value
+  return allPokemon.value
+})
 
-const displayedPokemon = computed(() => {
-  let list = [...activeList.value]
-  if (showFavoritesOnly.value) {
-    list = list.filter((p) => favoritesStore.isFavorite(getPokemonId(p.url)))
+const needsSort = computed(() => sortBy.value !== 'id-asc')
+
+const displayedPokemon = computed<PokemonCardDisplay[]>(() => {
+  const list = baseActiveList.value
+  if (list.length === 0) return []
+
+  const isFavsMode = showFavoritesView.value
+
+  if (isFavsMode) {
+    const mapped: PokemonCardDisplay[] = (list as PokemonDetail[]).map((p) => {
+      const id = p.id
+      const types: string[] = p.types?.map((t) => t.type.name) || []
+      const firstType = types[0]
+      const accentColor = firstType ? TYPE_COLORS[firstType]?.color ?? null : null
+
+      return {
+        name: p.name,
+        url: `https://pokeapi.co/api/v2/pokemon/${p.id}/`,
+        imageUrl: getPokemonImageUrl(id),
+        paddedId: String(id).padStart(4, '0'),
+        isFavorited: true,
+        accentColor,
+      }
+    })
+
+    const shouldSort = isFavsMode || needsSort.value
+    if (shouldSort) {
+      return [...mapped].sort((a, b) => {
+        const idA = parseInt(a.paddedId)
+        const idB = parseInt(b.paddedId)
+        switch (sortBy.value) {
+          case 'id-desc':
+            return idB - idA
+          case 'name-asc':
+            return a.name.localeCompare(b.name)
+          case 'name-desc':
+            return b.name.localeCompare(a.name)
+          default:
+            return idA - idB
+        }
+      })
+    }
+    return mapped
   }
-  list.sort((a, b) => {
-    const idA = getPokemonId(a.url)
-    const idB = getPokemonId(b.url)
-    switch (sortBy.value) {
-      case 'id-asc':
-        return idA - idB
-      case 'id-desc':
-        return idB - idA
-      case 'name-asc':
-        return a.name.localeCompare(b.name)
-      case 'name-desc':
-        return b.name.localeCompare(a.name)
-      default:
-        return 0
+
+  const mapped: PokemonCardDisplay[] = (list as PokemonShort[]).map((p) => {
+    const id = getPokemonId(p.url)
+    const firstType = (p as any).firstType as string | undefined
+    const accentColor = firstType ? TYPE_COLORS[firstType]?.color ?? null : null
+
+    return {
+      name: p.name,
+      url: p.url,
+      imageUrl: getPokemonImageUrl(id),
+      paddedId: String(id).padStart(4, '0'),
+      isFavorited: favoritesStore.isFavorite(id),
+      accentColor,
     }
   })
-  return list
+
+  if (needsSort.value) {
+    return [...mapped].sort((a, b) => {
+      const idA = parseInt(a.paddedId)
+      const idB = parseInt(b.paddedId)
+      switch (sortBy.value) {
+        case 'id-desc':
+          return idB - idA
+        case 'name-asc':
+          return a.name.localeCompare(b.name)
+        case 'name-desc':
+          return b.name.localeCompare(a.name)
+        default:
+          return idA - idB
+      }
+    })
+  }
+  return mapped
 })
 
 const loadMoreTrigger = ref<HTMLElement | null>(null)
@@ -111,20 +169,16 @@ function goToDetail(name: string) {
 }
 
 function handleRefetch() {
-  if (showFavoritesView.value) {
-    refetchAllList()
-  } else {
-    refetch()
-  }
+  refetch()
 }
 
 const isLoading = computed(() =>
   showFavoritesView.value
-    ? isAllListLoading.value
+    ? isFavoriteLoading.value
     : isInfiniteLoading.value || isSearchLoading.value || isTypeLoading.value,
 )
 const isError = computed(() =>
-  showFavoritesView.value ? isAllListError.value : isInfiniteError.value,
+  showFavoritesView.value ? isFavoriteError.value : isInfiniteError.value,
 )
 const showInfiniteScroll = computed(
   () =>
@@ -134,7 +188,6 @@ const showInfiniteScroll = computed(
     hasNextPage.value,
 )
 
-// Persist scroll position in sessionStorage so it survives KeepAlive lifecycle
 onBeforeRouteLeave(() => {
   sessionStorage.setItem('pokedex-scroll-y', String(window.scrollY))
 })

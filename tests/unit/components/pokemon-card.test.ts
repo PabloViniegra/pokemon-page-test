@@ -9,11 +9,6 @@ describe('PokemonCard', () => {
   it('renders cached type accents, emits events, and toggles favorites', async () => {
     const toggleFavorite = vi.fn()
 
-    vi.doMock('@tanstack/vue-query', () => ({
-      useQueryClient: () => ({
-        getQueryData: () => ({ types: [{ type: { name: 'electric' } }] }),
-      }),
-    }))
     vi.doMock('../../../src/stores/favorites', () => ({
       useFavoritesStore: () => ({
         isFavorite: () => true,
@@ -26,6 +21,10 @@ describe('PokemonCard', () => {
       props: {
         name: 'pikachu',
         url: 'https://pokeapi.co/api/v2/pokemon/25/',
+        imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png',
+        paddedId: '0025',
+        isFavorited: true,
+        accentColor: '#F7D02C',
       },
     })
 
@@ -43,9 +42,6 @@ describe('PokemonCard', () => {
   })
 
   it('falls back when there is no cached detail data', async () => {
-    vi.doMock('@tanstack/vue-query', () => ({
-      useQueryClient: () => ({ getQueryData: () => undefined }),
-    }))
     vi.doMock('../../../src/stores/favorites', () => ({
       useFavoritesStore: () => ({
         isFavorite: () => false,
@@ -58,6 +54,10 @@ describe('PokemonCard', () => {
       props: {
         name: 'bulbasaur',
         url: 'https://pokeapi.co/api/v2/pokemon/1/',
+        imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png',
+        paddedId: '0001',
+        isFavorited: false,
+        accentColor: null,
       },
     })
 
@@ -67,11 +67,6 @@ describe('PokemonCard', () => {
   })
 
   it('omits the accent color when a cached type has no defined palette', async () => {
-    vi.doMock('@tanstack/vue-query', () => ({
-      useQueryClient: () => ({
-        getQueryData: () => ({ types: [{ type: { name: 'mystery' } }] }),
-      }),
-    }))
     vi.doMock('../../../src/stores/favorites', () => ({
       useFavoritesStore: () => ({
         isFavorite: () => false,
@@ -84,6 +79,10 @@ describe('PokemonCard', () => {
       props: {
         name: 'missingno',
         url: 'https://pokeapi.co/api/v2/pokemon/999/',
+        imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/999.png',
+        paddedId: '0999',
+        isFavorited: false,
+        accentColor: null,
       },
     })
 

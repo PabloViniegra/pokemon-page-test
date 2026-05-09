@@ -70,6 +70,8 @@ describe('DetailView', async () => {
       },
     })
 
+    await new Promise(r => setTimeout(r, 0))
+
     expect(wrapper.find('.stats').exists()).toBe(true)
     expect(wrapper.find('.abilities').exists()).toBe(true)
     expect(wrapper.find('.sprites').exists()).toBe(true)

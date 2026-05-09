@@ -15,6 +15,7 @@ const lunalaArtwork = getPokemonImageUrl(792)
 const isHome = computed(() => route.name === 'home')
 const isTeamBuilder = computed(() => route.name === 'team-builder')
 const isGame = computed(() => route.name === 'game')
+const isDev = import.meta.env.DEV
 </script>
 
 <template>
@@ -93,7 +94,7 @@ const isGame = computed(() => route.name === 'game')
     </nav>
 
     <button
-      class="theme-toggle-mobile sm:hidden fixed bottom-4 right-4 z-50"
+      class="theme-toggle-mobile flex sm:hidden fixed bottom-4 right-4 z-50"
       :class="{ 'theme-toggle--dark': isDark }"
       :aria-label="toggleLabel"
       :title="toggleLabel"
@@ -127,7 +128,7 @@ const isGame = computed(() => route.name === 'game')
     </button>
 
     <button
-      class="theme-toggle hidden sm:flex"
+      class="theme-toggle hidden sm:inline-flex"
       :class="{ 'theme-toggle--dark': isDark }"
       :aria-label="toggleLabel"
       :title="toggleLabel"
@@ -168,6 +169,6 @@ const isGame = computed(() => route.name === 'game')
         <component :is="Component" />
       </KeepAlive>
     </router-view>
-    <VueQueryDevtools />
+    <VueQueryDevtools v-if="isDev" />
   </div>
 </template>

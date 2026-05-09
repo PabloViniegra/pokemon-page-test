@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { PokemonShort } from '../types/pokemon'
+import type { PokemonCardDisplay } from '../types/pokemon'
 import PokemonCard from './PokemonCard.vue'
 import { ref, onMounted } from 'vue'
 
 defineProps<{
-  pokemons: PokemonShort[]
+  pokemons: PokemonCardDisplay[]
   animate?: boolean
 }>()
 
@@ -28,6 +28,10 @@ onMounted(() => {
       :key="pokemon.name"
       :name="pokemon.name"
       :url="pokemon.url"
+      :imageUrl="pokemon.imageUrl"
+      :paddedId="pokemon.paddedId"
+      :isFavorited="pokemon.isFavorited"
+      :accentColor="pokemon.accentColor"
       :class="{ 'animate-fade-in-up': animate && !hasMounted }"
       :style="
         animate && !hasMounted ? { animationDelay: `${index * 30}ms` } : {}

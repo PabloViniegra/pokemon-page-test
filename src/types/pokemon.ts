@@ -320,3 +320,12 @@ export interface EvolutionStage {
   depth: number
   entries: EvolutionStageEntry[]
 }
+
+export interface PokemonCardDisplay {
+  name: string
+  url: string
+  imageUrl: string
+  paddedId: string
+  isFavorited: boolean
+  accentColor: string | null
+}

@@ -12,7 +12,7 @@ import {
   getEvolutionChain,
   parseEvolutionChain,
 } from '../helpers/pokemon-api'
-import type { PokemonResultList } from '../types/pokemon'
+import type { PokemonResultList, PokemonShort, PokemonDetail } from '../types/pokemon'
 import { computed, type MaybeRefOrGetter, toValue, readonly } from 'vue'
 
 export const pokemonKeys = {
@@ -27,6 +27,8 @@ export const pokemonKeys = {
     [...pokemonKeys.species(), id] as const,
   evolution: () => [...pokemonKeys.all, 'evolution'] as const,
   evolutionChain: (url: string) => [...pokemonKeys.evolution(), url] as const,
+  nameIndex: () => [...pokemonKeys.all, 'name-index'] as const,
+  favoriteList: (ids: number[]) => [...pokemonKeys.all, 'favorites', ids] as const,
 }
 
 const STALE_TIME = 1000 * 60 * 60 * 24
@@ -93,6 +95,8 @@ export function usePokemonMultiTypeQuery(types: MaybeRefOrGetter<string[]>) {
   }
 }
 
+let cachedNameIndex: { results: PokemonShort[] } | null = null
+
 export function usePokemonSearchQuery(searchTerm: MaybeRefOrGetter<string>) {
   return useQuery({
     queryKey: computed(() => pokemonKeys.list({ search: toValue(searchTerm) })),
@@ -120,8 +124,15 @@ export function usePokemonSearchQuery(searchTerm: MaybeRefOrGetter<string>) {
           ],
         } as PokemonResultList
       } catch {
-        const all = await getPokemonsList(10000, 0)
-        const filtered = all.results.filter((p) => p.name.includes(term))
+        if (!cachedNameIndex) {
+          const countData = await getPokemonsList(1, 0)
+          const realCount = countData.count
+          const fullData = await getPokemonsList(realCount, 0)
+          cachedNameIndex = { results: fullData.results }
+        }
+        const filtered = cachedNameIndex.results.filter((p) =>
+          p.name.includes(term),
+        )
         return {
           count: filtered.length,
           next: null,
@@ -172,11 +183,52 @@ export function useAllPokemonListQuery(enabled: MaybeRefOrGetter<boolean>) {
   })
 }
 
+export function useFavoritePokemonListQuery(
+  favoriteIds: MaybeRefOrGetter<number[]>,
+) {
+  const idsRef = computed(() => toValue(favoriteIds))
+
+  const queries = useQueries({
+    queries: computed(() =>
+      idsRef.value.map((id) => ({
+        queryKey: pokemonKeys.detail(id),
+        queryFn: () => getPokemonDetail(id),
+        staleTime: STALE_TIME,
+        enabled: idsRef.value.length > 0,
+      })),
+    ),
+  })
+
+  const isLoading = computed(() => queries.value.some((q: any) => q.isLoading))
+  const isError = computed(() => queries.value.some((q: any) => q.isError))
+
+  const results = computed<PokemonDetail[]>(() => {
+    return queries.value
+      .map((q: any) => q.data as PokemonDetail | undefined)
+      .filter((r: PokemonDetail | undefined): r is PokemonDetail => r !== null)
+  })
+
+  return {
+    results: readonly(results),
+    isLoading: readonly(isLoading),
+    isError: readonly(isError),
+  }
+}
+
+const prefetchThrottle = new Map<string | number, number>()
+const PREFETCH_TTL_MS = 2000
+
 export function usePrefetchPokemon() {
   const queryClient = useQueryClient()
 
   return {
     prefetchPokemonDetail(id: string | number) {
+      const now = Date.now()
+      const lastPrefetch = prefetchThrottle.get(id)
+      if (lastPrefetch && now - lastPrefetch < PREFETCH_TTL_MS) {
+        return
+      }
+      prefetchThrottle.set(id, now)
       queryClient.prefetchQuery({
         queryKey: pokemonKeys.detail(id),
         queryFn: () => getPokemonDetail(id),

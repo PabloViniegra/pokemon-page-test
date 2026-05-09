@@ -197,13 +197,15 @@ describe('usePokemonQueries', async () => {
     const options = useQuery.mock.calls[1][0]
 
     getPokemonDetail.mockRejectedValueOnce(new Error('not found'))
-    getPokemonsList.mockResolvedValueOnce({
-      results: [
-        { name: 'bulbasaur', url: '1' },
-        { name: 'ivysaur', url: '2' },
-        { name: 'pikachu', url: '25' },
-      ],
-    })
+    getPokemonsList
+      .mockResolvedValueOnce({ count: 3, next: null, previous: null, results: [] })
+      .mockResolvedValueOnce({
+        results: [
+          { name: 'bulbasaur', url: '1' },
+          { name: 'ivysaur', url: '2' },
+          { name: 'pikachu', url: '25' },
+        ],
+      })
 
     await expect(options.queryFn()).resolves.toEqual({
       count: 2,

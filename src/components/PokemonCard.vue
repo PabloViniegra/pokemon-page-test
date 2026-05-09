@@ -1,15 +1,13 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useQueryClient } from '@tanstack/vue-query'
-import { getPokemonId, getPokemonImageUrl } from '../helpers/pokemon-api'
-import { TYPE_COLORS } from '../types/pokemon'
-import type { PokemonDetail } from '../types/pokemon'
-import { pokemonKeys } from '../composables/usePokemonQueries'
 import { useFavoritesStore } from '../stores/favorites'
 
-const props = defineProps<{
+defineProps<{
   name: string
   url: string
+  imageUrl: string
+  paddedId: string
+  isFavorited: boolean
+  accentColor: string | null
 }>()
 
 defineEmits<{
@@ -18,23 +16,6 @@ defineEmits<{
 }>()
 
 const favoritesStore = useFavoritesStore()
-const queryClient = useQueryClient()
-
-const id = computed(() => getPokemonId(props.url))
-const imageUrl = computed(() => getPokemonImageUrl(id.value))
-const paddedId = computed(() => String(id.value).padStart(4, '0'))
-
-const isFavorited = computed(() => favoritesStore.isFavorite(id.value))
-
-const types = computed(() => {
-  const cached = queryClient.getQueryData<PokemonDetail>(pokemonKeys.detail(id.value))
-  return cached?.types?.map((t) => t.type.name) ?? []
-})
-
-const accentColor = computed(() => {
-  if (types.value.length === 0) return null
-  return TYPE_COLORS[types.value[0]]?.color ?? null
-})
 </script>
 
 <template>
@@ -57,14 +38,14 @@ const accentColor = computed(() => {
         :src="imageUrl"
         :alt="name"
         class="w-24 h-24 object-contain drop-shadow-md transition-transform duration-300 group-hover:scale-110"
-        :loading="id <= 20 ? 'eager' : 'lazy'"
+        :loading="parseInt(paddedId) <= 20 ? 'eager' : 'lazy'"
         decoding="async"
       />
       <span class="absolute top-3 right-3 text-[10px] font-bold text-gray-300">
         #{{ paddedId }}
       </span>
       <button
-        @click.stop="favoritesStore.toggleFavorite(id)"
+        @click.stop="favoritesStore.toggleFavorite(parseInt(paddedId))"
         class="fav-btn absolute top-3 left-3 w-9 h-9 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm shadow-md transition-all duration-200 hover:scale-115 active:scale-90"
         :class="
           isFavorited ? 'fav-btn--active' : 'text-gray-300 hover:text-red-400'

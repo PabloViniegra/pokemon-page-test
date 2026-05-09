@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { shallowRef } from 'vue'
 import {
@@ -35,6 +35,11 @@ const { data: evolutionChain } = useEvolutionChainQuery(
 const primaryTypeColor = computed(() => {
   if (!pokemon.value?.types[0]) return '#A8A77A'
   return TYPE_COLORS[pokemon.value.types[0].type.name]?.color || '#A8A77A'
+})
+
+const deferredSectionsReady = ref(false)
+queueMicrotask(() => {
+  deferredSectionsReady.value = true
 })
 </script>
 
@@ -93,31 +98,33 @@ const primaryTypeColor = computed(() => {
 
       <PokemonSprites :sprites="pokemon.sprites" :pokemon-name="pokemon.name" />
 
-      <PokemonMoves
-        :moves="pokemon.moves"
-        :game-indices="pokemon.game_indices"
-        :held-items="pokemon.held_items"
-        :past-types="pokemon.past_types"
-      />
+      <div v-if="deferredSectionsReady">
+        <PokemonMoves
+          :moves="pokemon.moves"
+          :game-indices="pokemon.game_indices"
+          :held-items="pokemon.held_items"
+          :past-types="pokemon.past_types"
+        />
 
-      <PokemonSpeciesInfo v-if="species" :species="species" />
+        <PokemonSpeciesInfo v-if="species" :species="species" />
 
-      <section
-        v-if="evolutionChain"
-        class="px-4 sm:px-8 py-8 max-w-5xl mx-auto w-full"
-      >
-        <h2
-          class="text-xl sm:text-2xl font-bold mb-6 text-center"
-          :style="{ color: primaryTypeColor }"
+        <section
+          v-if="evolutionChain"
+          class="px-4 sm:px-8 py-8 max-w-5xl mx-auto w-full"
         >
-          Evolution Chain
-        </h2>
-        <EvolutionTree
-            v-if="evolutionChain"
-            :node="evolutionChain"
-            :accent-color="primaryTypeColor"
-          />
-      </section>
+          <h2
+            class="text-xl sm:text-2xl font-bold mb-6 text-center"
+            :style="{ color: primaryTypeColor }"
+          >
+            Evolution Chain
+          </h2>
+          <EvolutionTree
+              v-if="evolutionChain"
+              :node="evolutionChain"
+              :accent-color="primaryTypeColor"
+            />
+        </section>
+      </div>
     </template>
   </main>
 </template>

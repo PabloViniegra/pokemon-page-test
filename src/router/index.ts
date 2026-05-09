@@ -1,8 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
-import DetailView from '../views/DetailView.vue'
-import TeamBuilderView from '../views/TeamBuilderView.vue'
-import GameView from '../views/GameView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -10,23 +6,23 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: HomeView,
+      component: () => import('../views/HomeView.vue'),
     },
     {
       path: '/pokemon/:id',
       name: 'pokemon-detail',
-      component: DetailView,
+      component: () => import('../views/DetailView.vue'),
       props: true,
     },
     {
       path: '/team-builder',
       name: 'team-builder',
-      component: TeamBuilderView,
+      component: () => import('../views/TeamBuilderView.vue'),
     },
     {
       path: '/game',
       name: 'game',
-      component: GameView,
+      component: () => import('../views/GameView.vue'),
     },
   ],
   scrollBehavior(to, from, savedPosition) {

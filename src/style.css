@@ -206,7 +206,6 @@ html.dark .pokemon-page-header--team {
   top: 0.5rem;
   right: 0.75rem;
   z-index: 60;
-  display: inline-flex;
   align-items: center;
   gap: 0.6rem;
   padding: 0.45rem 0.6rem 0.45rem 0.45rem;
