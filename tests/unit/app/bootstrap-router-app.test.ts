@@ -1,4 +1,4 @@
-import { reactive } from 'vue'
+import { defineComponent, markRaw, reactive, ref } from 'vue'
 import { mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -94,6 +94,17 @@ describe('bootstrap and app shell', () => {
       VueQueryDevtools: { template: '<div class="devtools" />' },
     }))
 
+    const HomePage = markRaw(defineComponent({
+      name: 'HomeView',
+      setup() {
+        const inputValue = ref('')
+        return {
+          inputValue,
+        }
+      },
+      template: '<div class="page"><input class="search" v-model="inputValue" /></div>',
+    }))
+
     const App = (await import('../../../src/App.vue')).default
     const wrapper = mount(App, {
       global: {
@@ -104,7 +115,7 @@ describe('bootstrap and app shell', () => {
             setup() {
               return {
                 currentRoute: route,
-                component: { name: 'HomeView', template: '<div class="page">Page</div>' },
+                component: HomePage,
               }
             },
           },
@@ -119,6 +130,10 @@ describe('bootstrap and app shell', () => {
     expect(wrapper.find('.page').exists()).toBe(true)
     expect(wrapper.find('.devtools').exists()).toBe(true)
     expect(wrapper.html()).toContain('bg-red-50 text-red-700')
+
+    route.fullPath = '/?q=p'
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('input.search').exists()).toBe(true)
 
     const brandHomeButton = findButtonByText(wrapper, 'Pokédex')
     const navHomeButton = findButtonByText(wrapper, 'Dex')

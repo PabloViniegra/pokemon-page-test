@@ -9,6 +9,8 @@ import {
   getPokemonDetail,
   getPokemonSpecies,
   getPokemonsByType,
+  getEvolutionChain,
+  parseEvolutionChain,
 } from '../helpers/pokemon-api'
 import type { PokemonResultList } from '../types/pokemon'
 import { computed, type MaybeRefOrGetter, toValue, readonly } from 'vue'
@@ -23,6 +25,8 @@ export const pokemonKeys = {
   species: () => [...pokemonKeys.all, 'species'] as const,
   speciesDetail: (id: string | number) =>
     [...pokemonKeys.species(), id] as const,
+  evolution: () => [...pokemonKeys.all, 'evolution'] as const,
+  evolutionChain: (url: string) => [...pokemonKeys.evolution(), url] as const,
 }
 
 const STALE_TIME = 1000 * 60 * 60 * 24
@@ -180,4 +184,20 @@ export function usePrefetchPokemon() {
       })
     },
   }
+}
+
+export function useEvolutionChainQuery(
+  url: MaybeRefOrGetter<string | undefined>,
+) {
+  return useQuery({
+    queryKey: computed(() => pokemonKeys.evolutionChain(toValue(url) || '')),
+    queryFn: async () => {
+      const chainUrl = toValue(url)
+      if (!chainUrl) return null
+      const raw = await getEvolutionChain(chainUrl)
+      return parseEvolutionChain(raw.chain)
+    },
+    enabled: computed(() => !!toValue(url)),
+    staleTime: STALE_TIME,
+  })
 }

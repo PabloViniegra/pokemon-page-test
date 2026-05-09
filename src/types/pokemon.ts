@@ -268,3 +268,55 @@ export interface AbilityDetail {
     language: { name: string }
   }[]
 }
+
+export interface EvolutionDetail {
+  trigger: { name: string; url: string }
+  item: { name: string; url: string } | null
+  min_level: number | null
+  min_happiness: number | null
+  min_affection: number | null
+  needs_overworld_rain: boolean
+  time_of_day: string
+  known_move_type: { name: string; url: string } | null
+  known_move: { name: string; url: string } | null
+  held_item: { name: string; url: string } | null
+  location: { name: string; url: string } | null
+  gender: number | null
+  party_species: { name: string; url: string } | null
+  party_type: { name: string; url: string } | null
+  relative_physical_stats: number | null
+  trade_species: { name: string; url: string } | null
+  turn_upside_down: boolean
+}
+
+export interface EvolutionChainLink {
+  species: { name: string; url: string }
+  evolution_details: EvolutionDetail[]
+  evolves_to: EvolutionChainLink[]
+  is_baby: boolean
+}
+
+export interface EvolutionChainRaw {
+  id: number
+  chain: EvolutionChainLink
+}
+
+export interface EvolutionNode {
+  speciesName: string
+  speciesId: number
+  imageUrl: string
+  details: EvolutionDetail[]
+  isBaby: boolean
+  evolvesTo: EvolutionNode[]
+}
+
+export interface EvolutionStageEntry {
+  node: EvolutionNode
+  condition: string
+  parentId: number | null
+}
+
+export interface EvolutionStage {
+  depth: number
+  entries: EvolutionStageEntry[]
+}

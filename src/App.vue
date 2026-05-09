@@ -163,9 +163,9 @@ const isGame = computed(() => route.name === 'game')
       </span>
     </button>
 
-    <router-view v-slot="{ Component, route: r }">
+    <router-view v-slot="{ Component }">
       <KeepAlive include="HomeView">
-        <component :is="Component" :key="r.fullPath" />
+        <component :is="Component" />
       </KeepAlive>
     </router-view>
     <VueQueryDevtools />

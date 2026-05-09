@@ -5,6 +5,7 @@ import { shallowRef } from 'vue'
 import {
   usePokemonDetailQuery,
   usePokemonSpeciesQuery,
+  useEvolutionChainQuery,
 } from '../composables/usePokemonQueries'
 import { TYPE_COLORS } from '../types/pokemon'
 import PokemonHero from '../components/PokemonHero.vue'
@@ -13,6 +14,7 @@ import PokemonAbilities from '../components/PokemonAbilities.vue'
 import PokemonSprites from '../components/PokemonSprites.vue'
 import PokemonMoves from '../components/PokemonMoves.vue'
 import PokemonSpeciesInfo from '../components/PokemonSpeciesInfo.vue'
+import EvolutionTree from '../components/EvolutionTree.vue'
 
 const props = defineProps<{
   id: string
@@ -25,6 +27,9 @@ const { data: pokemon, isLoading, isError } = usePokemonDetailQuery(props.id)
 const { data: species } = usePokemonSpeciesQuery(
   props.id,
   computed(() => pokemon.value?.species.url),
+)
+const { data: evolutionChain } = useEvolutionChainQuery(
+  computed(() => species.value?.evolution_chain.url),
 )
 
 const primaryTypeColor = computed(() => {
@@ -96,6 +101,23 @@ const primaryTypeColor = computed(() => {
       />
 
       <PokemonSpeciesInfo v-if="species" :species="species" />
+
+      <section
+        v-if="evolutionChain"
+        class="px-4 sm:px-8 py-8 max-w-5xl mx-auto w-full"
+      >
+        <h2
+          class="text-xl sm:text-2xl font-bold mb-6 text-center"
+          :style="{ color: primaryTypeColor }"
+        >
+          Evolution Chain
+        </h2>
+        <EvolutionTree
+            v-if="evolutionChain"
+            :node="evolutionChain"
+            :accent-color="primaryTypeColor"
+          />
+      </section>
     </template>
   </main>
 </template>

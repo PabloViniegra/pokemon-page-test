@@ -3,6 +3,9 @@ import type {
   PokemonDetail,
   PokemonSpeciesInfo,
   AbilityDetail,
+  EvolutionChainRaw,
+  EvolutionNode,
+  EvolutionStage,
 } from '../types/pokemon'
 
 const POKEMON_API_BASE = 'https://pokeapi.co/api/v2'
@@ -102,4 +105,99 @@ export async function getAbilityDetail(name: string): Promise<AbilityDetail> {
   }
 
   return (await response.json()) as AbilityDetail
+}
+
+export async function getEvolutionChain(
+  url: string,
+): Promise<EvolutionChainRaw> {
+  const response = await fetch(url)
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch evolution chain: ${response.status} ${response.statusText}`,
+    )
+  }
+
+  return (await response.json()) as EvolutionChainRaw
+}
+
+export function parseEvolutionChain(
+  chain: EvolutionChainRaw['chain'],
+): EvolutionNode {
+  return {
+    speciesName: chain.species.name,
+    speciesId: getPokemonId(chain.species.url),
+    imageUrl: getPokemonImageUrl(getPokemonId(chain.species.url)),
+    details: chain.evolution_details,
+    isBaby: chain.is_baby,
+    evolvesTo: chain.evolves_to.map((evo) => parseEvolutionChain(evo)),
+  }
+}
+
+export function formatEvolutionDetails(
+  details: EvolutionNode['details'],
+): string {
+  if (!details || details.length === 0) return ''
+  const d = details[0]
+  switch (d.trigger?.name) {
+    case 'level-up':
+      if (d.min_level) return `Level ${d.min_level}`
+      if (d.min_happiness) return `High friendship`
+      if (d.min_affection) return `High affection`
+      if (d.known_move) return `Knows ${d.known_move.name}`
+      if (d.known_move_type) return `Knows ${d.known_move_type.name} move`
+      if (d.location) return `Level up at ${d.location.name}`
+      if (d.time_of_day) return `Level up (${d.time_of_day})`
+      return 'Level up'
+    case 'trade':
+      if (d.held_item) return `Trade holding ${d.held_item.name}`
+      if (d.trade_species) return `Trade for ${d.trade_species.name}`
+      return 'Trade'
+    case 'use-item':
+      return d.item ? `Use ${d.item.name}` : 'Use item'
+    case 'shed':
+      return 'Shed'
+    case 'spin':
+      return 'Spin'
+    case 'tower-of-darkness':
+      return 'Tower of Darkness'
+    case 'tower-of-waters':
+      return 'Tower of Waters'
+    case 'three-critical-hits':
+      return 'Land 3 critical hits'
+    case 'take-damage':
+      return 'Take damage'
+    case 'other':
+      return 'Special condition'
+    default:
+      return d.trigger?.name || ''
+  }
+}
+
+export function computeEvolutionStages(root: EvolutionNode): EvolutionStage[] {
+  const stages: EvolutionStage[] = []
+
+  function traverse(
+    node: EvolutionNode,
+    depth: number,
+    parentId: number | null,
+    condition: string,
+  ) {
+    if (!stages[depth]) {
+      stages[depth] = { depth, entries: [] }
+    }
+    stages[depth].entries.push({ node, condition, parentId })
+
+    for (const child of node.evolvesTo) {
+      traverse(
+        child,
+        depth + 1,
+        node.speciesId,
+        formatEvolutionDetails(child.details),
+      )
+    }
+  }
+
+  traverse(root, 0, null, '')
+  return stages.filter(Boolean)
 }

@@ -16,6 +16,7 @@ vi.mock('../../../src/composables/usePokemonQueries', () => ({
     speciesArgs.push(args)
     return { data: speciesRef }
   },
+  useEvolutionChainQuery: () => ({ data: ref(null) }),
 }))
 
 vi.mock('vue-router', () => ({
