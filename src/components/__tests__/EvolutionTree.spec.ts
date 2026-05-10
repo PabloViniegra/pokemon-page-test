@@ -62,6 +62,7 @@ describe('EvolutionTree', () => {
     expect(wrapper.text()).toContain('Level 16')
     expect(wrapper.text()).toContain('Level 32')
     expect(wrapper.findAll('.evo-stage')).toHaveLength(3)
+    expect(wrapper.findAll('.evo-connector')).toHaveLength(2)
   })
 
   it('renders a branching chain (eevee)', () => {
@@ -84,9 +85,9 @@ describe('EvolutionTree', () => {
     expect(wrapper.text()).toContain('vaporeon')
     expect(wrapper.text()).toContain('jolteon')
     expect(wrapper.text()).toContain('flareon')
-    expect(wrapper.text()).toContain('water-stone')
-    expect(wrapper.text()).toContain('thunder-stone')
-    expect(wrapper.text()).toContain('fire-stone')
+    expect(wrapper.text()).toContain('Water Stone')
+    expect(wrapper.text()).toContain('Thunder Stone')
+    expect(wrapper.text()).toContain('Fire Stone')
     expect(wrapper.findAll('.evo-stage')).toHaveLength(2)
     expect(wrapper.findAll('.evo-entry')).toHaveLength(4)
   })
@@ -122,7 +123,7 @@ describe('EvolutionTree', () => {
     expect(mockPush).toHaveBeenCalledWith('/pokemon/25')
   })
 
-  it('applies accent color to condition badges', () => {
+  it('applies accent color to the tree', () => {
     const node = createNode('bulbasaur', 1, [], [
       createNode('ivysaur', 2, [
         { trigger: { name: 'level-up' }, min_level: 16 } as any,
@@ -131,20 +132,19 @@ describe('EvolutionTree', () => {
     const wrapper = mount(EvolutionTree, {
       props: { node, accentColor: '#EE8130' },
     })
-    const badge = wrapper.find('.evo-entry__condition')
-    expect(badge.exists()).toBe(true)
-    expect(badge.attributes('style')).toContain('238, 129, 48')
+    const tree = wrapper.find('.evo-tree')
+    expect(tree.attributes('style')).toContain('#EE8130')
   })
 
-  it('does not show condition badge for the root pokemon', () => {
+  it('does not show condition for the root pokemon', () => {
     const node = createNode('mew', 151)
     const wrapper = mount(EvolutionTree, {
       props: { node },
     })
-    expect(wrapper.find('.evo-entry__condition').exists()).toBe(false)
+    expect(wrapper.find('.evo-condition').exists()).toBe(false)
   })
 
-  it('renders arrow connectors between stages', () => {
+  it('renders connector rails between stages', () => {
     const node = createNode('charmander', 4, [], [
       createNode('charmeleon', 5, [
         { trigger: { name: 'level-up' }, min_level: 16 } as any,
@@ -153,16 +153,18 @@ describe('EvolutionTree', () => {
     const wrapper = mount(EvolutionTree, {
       props: { node },
     })
-    const arrows = wrapper.findAll('.evo-arrow')
-    expect(arrows).toHaveLength(1)
+    const connectors = wrapper.findAll('.evo-connector')
+    expect(connectors).toHaveLength(1)
+    const branches = wrapper.findAll('.evo-branch')
+    expect(branches.length).toBeGreaterThanOrEqual(1)
   })
 
-  it('renders no arrows for single-stage chain', () => {
+  it('renders no connectors for single-stage chain', () => {
     const node = createNode('mew', 151)
     const wrapper = mount(EvolutionTree, {
       props: { node },
     })
-    expect(wrapper.findAll('.evo-arrow')).toHaveLength(0)
+    expect(wrapper.findAll('.evo-connector')).toHaveLength(0)
   })
 
   it('adds spacing between groups with different parents', () => {
@@ -193,5 +195,35 @@ describe('EvolutionTree', () => {
       props: { node },
     })
     expect(wrapper.find('.evo-entry__card').attributes('aria-label')).toBe('View mew details')
+  })
+
+  it('highlights the current pokemon', () => {
+    const node = createNode('bulbasaur', 1, [], [
+      createNode('ivysaur', 2, [
+        { trigger: { name: 'level-up' }, min_level: 16 } as any,
+      ]),
+    ])
+    const wrapper = mount(EvolutionTree, {
+      props: { node, currentPokemonId: 2 },
+    })
+    const currentCard = wrapper.find('.evo-entry__card--current')
+    expect(currentCard.exists()).toBe(true)
+    expect(currentCard.text()).toContain('ivysaur')
+    expect(currentCard.text()).toContain('Current')
+  })
+
+  it('does not highlight non-current pokemon', () => {
+    const node = createNode('bulbasaur', 1, [], [
+      createNode('ivysaur', 2, [
+        { trigger: { name: 'level-up' }, min_level: 16 } as any,
+      ]),
+    ])
+    const wrapper = mount(EvolutionTree, {
+      props: { node, currentPokemonId: 2 },
+    })
+    const cards = wrapper.findAll('.evo-entry__card')
+    expect(cards).toHaveLength(2)
+    const highlighted = wrapper.findAll('.evo-entry__card--current')
+    expect(highlighted).toHaveLength(1)
   })
 })

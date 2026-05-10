@@ -134,6 +134,13 @@ export function parseEvolutionChain(
   }
 }
 
+function formatName(name: string): string {
+  return name
+    .split('-')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ')
+}
+
 export function formatEvolutionDetails(
   details: EvolutionNode['details'],
 ): string {
@@ -144,17 +151,31 @@ export function formatEvolutionDetails(
       if (d.min_level) return `Level ${d.min_level}`
       if (d.min_happiness) return `High friendship`
       if (d.min_affection) return `High affection`
-      if (d.known_move) return `Knows ${d.known_move.name}`
-      if (d.known_move_type) return `Knows ${d.known_move_type.name} move`
-      if (d.location) return `Level up at ${d.location.name}`
+      if (d.known_move) return `Knows ${formatName(d.known_move.name)}`
+      if (d.known_move_type)
+        return `Knows ${formatName(d.known_move_type.name)} move`
+      if (d.location) return `Level up at ${formatName(d.location.name)}`
       if (d.time_of_day) return `Level up (${d.time_of_day})`
+      if (d.needs_overworld_rain) return `Level up (rain)`
+      if (d.relative_physical_stats === 1) return `Level up (Atk > Def)`
+      if (d.relative_physical_stats === -1) return `Level up (Def > Atk)`
+      if (d.relative_physical_stats === 0) return `Level up (Atk = Def)`
+      if (d.party_species)
+        return `Level up with ${formatName(d.party_species.name)}`
+      if (d.party_type)
+        return `Level up with ${formatName(d.party_type.name)} type`
+      if (d.turn_upside_down) return `Level up (upside down)`
+      if (d.gender === 1) return `Level up (female)`
+      if (d.gender === 2) return `Level up (male)`
       return 'Level up'
     case 'trade':
-      if (d.held_item) return `Trade holding ${d.held_item.name}`
-      if (d.trade_species) return `Trade for ${d.trade_species.name}`
+      if (d.held_item)
+        return `Trade holding ${formatName(d.held_item.name)}`
+      if (d.trade_species)
+        return `Trade for ${formatName(d.trade_species.name)}`
       return 'Trade'
     case 'use-item':
-      return d.item ? `Use ${d.item.name}` : 'Use item'
+      return d.item ? `Use ${formatName(d.item.name)}` : 'Use item'
     case 'shed':
       return 'Shed'
     case 'spin':
@@ -170,7 +191,7 @@ export function formatEvolutionDetails(
     case 'other':
       return 'Special condition'
     default:
-      return d.trigger?.name || ''
+      return d.trigger?.name ? formatName(d.trigger.name) : ''
   }
 }
 

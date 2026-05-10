@@ -74,7 +74,7 @@ describe('formatEvolutionDetails', () => {
   })
 
   it('formats use-item', () => {
-    expect(formatEvolutionDetails([{ trigger: { name: 'use-item' }, item: { name: 'fire-stone' } } as any])).toBe('Use fire-stone')
+    expect(formatEvolutionDetails([{ trigger: { name: 'use-item' }, item: { name: 'fire-stone' } } as any])).toBe('Use Fire Stone')
   })
 
   it('formats trade', () => {

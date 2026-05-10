@@ -166,10 +166,11 @@ onUnmounted(() => {
             Evolution Chain
           </h2>
           <EvolutionTree
-              v-if="evolutionChain"
-              :node="evolutionChain"
-              :accent-color="primaryTypeColor"
-            />
+            v-if="evolutionChain"
+            :node="evolutionChain"
+            :accent-color="primaryTypeColor"
+            :current-pokemon-id="pokemon.id"
+          />
         </section>
       </div>
     </template>

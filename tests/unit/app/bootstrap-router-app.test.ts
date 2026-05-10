@@ -4,8 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 function findButtonByText(wrapper: ReturnType<typeof mount>, label: string) {
   return wrapper
-    .findAll('button')
-    .find((button) => button.text().replace(/\s+/g, ' ').includes(label))
+    .findAll('button, a')
+    .find((el) => el.text().replace(/\s+/g, ' ').includes(label))
 }
 
 describe('bootstrap and app shell', () => {
@@ -56,7 +56,10 @@ describe('bootstrap and app shell', () => {
     vi.doMock('../../../src/views/GameView.vue', () => ({ default: { name: 'GameView' } }))
     vi.doMock('vue-router', () => ({
       createWebHistory: () => 'history',
-      createRouter: (options: any) => ({ options }),
+      createRouter: (options: any) => ({
+        options,
+        beforeEach: vi.fn(),
+      }),
     }))
 
     const router = (await import('../../../src/router')).default as any
@@ -122,6 +125,17 @@ describe('bootstrap and app shell', () => {
           KeepAlive: {
             template: '<div class="keepalive"><slot /></div>',
           },
+          RouterLink: {
+            template: '<a class="router-link-stub" @click.prevent="handleClick"><slot /></a>',
+            props: ['to'],
+            setup(props: { to: any }) {
+              const router = { push }
+              const handleClick = () => {
+                router.push(props.to)
+              }
+              return { handleClick }
+            },
+          },
         },
       },
     })
@@ -135,14 +149,14 @@ describe('bootstrap and app shell', () => {
     await wrapper.vm.$nextTick()
     expect(wrapper.find('input.search').exists()).toBe(true)
 
-    const brandHomeButton = findButtonByText(wrapper, 'Pokédex')
-    const navHomeButton = findButtonByText(wrapper, 'Dex')
+    const homeLinks = wrapper.findAll('a.router-link-stub')
+    const brandHome = homeLinks.find((el) => el.text().replace(/\s+/g, ' ').includes('Pokédex'))
 
-    expect(brandHomeButton).toBeDefined()
-    expect(navHomeButton).toBeDefined()
+    expect(brandHome).toBeDefined()
 
-    await brandHomeButton!.trigger('click')
-    await navHomeButton!.trigger('click')
+    if (brandHome) {
+      await brandHome.trigger('click')
+    }
     expect(push).toHaveBeenCalledWith({ name: 'home' })
 
     route.name = 'team-builder'
@@ -150,8 +164,10 @@ describe('bootstrap and app shell', () => {
     await wrapper.vm.$nextTick()
 
     expect(wrapper.html()).toContain('bg-blue-50 text-blue-700')
-    const teamBuilderButton = findButtonByText(wrapper, 'Team Builder')
-    await teamBuilderButton!.trigger('click')
+    const teamBuilderLink = wrapper.findAll('a.router-link-stub').find((el) => el.text().replace(/\s+/g, ' ').includes('Team Builder'))
+    if (teamBuilderLink) {
+      await teamBuilderLink.trigger('click')
+    }
     expect(push).toHaveBeenCalledWith({ name: 'team-builder' })
   })
 })

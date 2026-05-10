@@ -1,21 +1,48 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import type { EvolutionNode } from '../types/pokemon'
+import type { EvolutionNode, EvolutionStage } from '../types/pokemon'
 import { computeEvolutionStages } from '../helpers/pokemon-api'
 
 interface Props {
   node: EvolutionNode
   accentColor?: string
+  currentPokemonId?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
   accentColor: '#A8A77A',
+  currentPokemonId: 0,
 })
 
 const router = useRouter()
 
 const stages = computed(() => computeEvolutionStages(props.node))
+
+interface BranchGroup {
+  parentId: number | null
+  entries: EvolutionStage['entries']
+}
+
+interface GroupedStage {
+  depth: number
+  groups: BranchGroup[]
+}
+
+const groupedStages = computed<GroupedStage[]>(() => {
+  return stages.value.map((stage) => {
+    const groups: BranchGroup[] = []
+    for (const entry of stage.entries) {
+      const lastGroup = groups[groups.length - 1]
+      if (lastGroup && lastGroup.parentId === entry.parentId) {
+        lastGroup.entries.push(entry)
+      } else {
+        groups.push({ parentId: entry.parentId, entries: [entry] })
+      }
+    }
+    return { depth: stage.depth, groups }
+  })
+})
 
 function navigateToPokemon(id: number) {
   router.push(`/pokemon/${id}`)
@@ -24,54 +51,58 @@ function navigateToPokemon(id: number) {
 
 <template>
   <div
-    class="evo-stages flex items-start overflow-x-auto pb-4 pt-2"
+    class="evo-tree"
     :style="{ '--evo-accent': accentColor }"
   >
-    <template v-for="(stage, si) in stages" :key="stage.depth">
-      <!-- Arrow connector between stages -->
+    <template v-for="(stage, si) in groupedStages" :key="stage.depth">
+      <!-- Connector between stages -->
       <div
         v-if="si > 0"
-        class="evo-arrow flex flex-col items-center justify-center self-stretch px-1 sm:px-2"
+        class="evo-connector"
+        aria-hidden="true"
       >
-        <svg
-          class="w-5 h-5 shrink-0"
-          viewBox="0 0 20 20"
-          fill="none"
-          aria-hidden="true"
-        >
-          <path
-            d="M7 4l6 6-6 6"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
+        <div class="evo-connector-rail">
+          <template
+            v-for="(group, gi) in stage.groups"
+            :key="group.parentId"
+          >
+            <div
+              v-for="entry in group.entries"
+              :key="entry.node.speciesId"
+              class="evo-branch"
+            >
+              <span
+                v-if="entry.condition"
+                class="evo-condition"
+              >
+                {{ entry.condition }}
+              </span>
+            </div>
+            <div
+              v-if="gi < stage.groups.length - 1"
+              class="evo-group-gap"
+            ></div>
+          </template>
+        </div>
       </div>
 
       <!-- Stage column -->
-      <div class="evo-stage flex flex-col gap-3">
+      <div class="evo-stage">
         <template
-          v-for="(entry, ei) in stage.entries"
-          :key="entry.node.speciesId"
+          v-for="(group, gi) in stage.groups"
+          :key="group.parentId"
         >
-          <!-- Extra spacing between groups with different parents -->
           <div
-            v-if="ei > 0 && entry.parentId !== stage.entries[ei - 1].parentId"
-            class="h-3"
-          ></div>
-
-          <div class="evo-entry flex flex-col items-center gap-1">
-            <div
-              v-if="entry.condition"
-              class="evo-entry__condition"
-              :style="{ backgroundColor: accentColor }"
-            >
-              {{ entry.condition }}
-            </div>
-
+            v-for="entry in group.entries"
+            :key="entry.node.speciesId"
+            class="evo-entry"
+          >
             <button
-              class="evo-entry__card group"
+              class="evo-entry__card"
+              :class="{
+                'evo-entry__card--current':
+                  entry.node.speciesId === currentPokemonId,
+              }"
               :aria-label="`View ${entry.node.speciesName} details`"
               @click="navigateToPokemon(entry.node.speciesId)"
             >
@@ -83,9 +114,21 @@ function navigateToPokemon(id: number) {
                   loading="lazy"
                 />
               </div>
-              <span class="evo-entry__name">{{ entry.node.speciesName }}</span>
+              <span class="evo-entry__name">
+                {{ entry.node.speciesName }}
+              </span>
+              <span
+                v-if="entry.node.speciesId === currentPokemonId"
+                class="evo-entry__badge"
+              >
+                Current
+              </span>
             </button>
           </div>
+          <div
+            v-if="gi < stage.groups.length - 1"
+            class="evo-group-gap"
+          ></div>
         </template>
       </div>
     </template>
@@ -93,61 +136,99 @@ function navigateToPokemon(id: number) {
 </template>
 
 <style scoped>
-.evo-stages {
+.evo-tree {
   --evo-accent: #a8a77a;
+  position: relative;
+  display: flex;
+  overflow-x: auto;
+  overflow-y: visible;
+  padding-bottom: 1rem;
+  padding-top: 0.5rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
 }
 
-.evo-arrow {
-  color: #9ca3af;
-  min-width: 1.25rem;
+.evo-connector {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-self: stretch;
+  min-width: 2.5rem;
+  padding: 0 0.25rem;
 }
 
-@media (min-width: 640px) {
-  .evo-arrow {
-    min-width: 2rem;
-  }
+.evo-connector-rail {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: 100%;
+  border-left: 2px solid var(--app-border-strong);
+  position: relative;
+  padding-left: 0.75rem;
+}
+
+.evo-branch {
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding: 0.5rem 0;
+  min-height: 5.5rem;
+}
+
+.evo-branch::before {
+  content: '';
+  position: absolute;
+  left: -0.75rem;
+  top: 50%;
+  width: 0.75rem;
+  height: 2px;
+  background: var(--app-border-strong);
+  transform: translateY(-50%);
+}
+
+.evo-condition {
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--app-text-soft);
+  text-align: left;
+  max-width: 6rem;
+  word-break: break-word;
 }
 
 .evo-stage {
-  min-width: 8.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-width: 7rem;
 }
 
-@media (min-width: 640px) {
-  .evo-stage {
-    min-width: 10rem;
-  }
+.evo-entry {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 5.5rem;
 }
 
-.evo-entry__condition {
-  padding: 0.1rem 0.5rem;
-  border-radius: 9999px;
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 1.3;
-  color: white;
-  text-align: center;
-  max-width: 9rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-@media (min-width: 640px) {
-  .evo-entry__condition {
-    font-size: 11px;
-    max-width: 10rem;
-  }
+.evo-group-gap {
+  height: 1.5rem;
+  flex-shrink: 0;
 }
 
 .evo-entry__card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.375rem;
   padding: 0.5rem;
   border-radius: 0.75rem;
-  border: none;
+  border: 2px solid transparent;
   background: none;
   cursor: pointer;
-  transition: transform 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .evo-entry__card:hover {
@@ -156,16 +237,21 @@ function navigateToPokemon(id: number) {
 
 .evo-entry__card:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px white, 0 0 0 4px var(--evo-accent);
-  border-radius: 0.75rem;
+  border-color: var(--evo-accent);
+}
+
+.evo-entry__card--current {
+  border-color: var(--evo-accent);
+  background: var(--app-surface-muted);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .evo-entry__avatar {
-  width: 4rem;
-  height: 4rem;
+  width: 3.5rem;
+  height: 3.5rem;
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.85);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  background: var(--app-surface-soft);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -177,39 +263,79 @@ function navigateToPokemon(id: number) {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
 }
 
-@media (min-width: 640px) {
-  .evo-entry__avatar {
-    width: 5rem;
-    height: 5rem;
-  }
+.evo-entry__card--current .evo-entry__avatar {
+  box-shadow:
+    0 0 0 2px var(--evo-accent),
+    0 4px 12px rgba(0, 0, 0, 0.18);
 }
 
 .evo-entry__img {
-  width: 3.5rem;
-  height: 3.5rem;
+  width: 3rem;
+  height: 3rem;
   object-fit: contain;
-}
-
-@media (min-width: 640px) {
-  .evo-entry__img {
-    width: 4rem;
-    height: 4rem;
-  }
 }
 
 .evo-entry__name {
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: capitalize;
-  color: #374151;
+  color: var(--app-text);
   transition: color 0.15s ease;
 }
 
-.evo-entry__card:hover .evo-entry__name {
-  color: #111827;
+.evo-entry__badge {
+  font-size: 0.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.125rem 0.375rem;
+  border-radius: 9999px;
+  background: var(--evo-accent);
+  color: white;
 }
 
 @media (min-width: 640px) {
+  .evo-connector {
+    min-width: 4rem;
+    padding: 0 0.5rem;
+  }
+
+  .evo-connector-rail {
+    padding-left: 1rem;
+  }
+
+  .evo-branch {
+    min-height: 7rem;
+  }
+
+  .evo-branch::before {
+    left: -1rem;
+    width: 1rem;
+  }
+
+  .evo-condition {
+    font-size: 0.6875rem;
+    max-width: 8rem;
+  }
+
+  .evo-stage {
+    min-width: 8.5rem;
+  }
+
+  .evo-entry {
+    min-height: 7rem;
+  }
+
+  .evo-entry__avatar {
+    width: 4.5rem;
+    height: 4.5rem;
+  }
+
+  .evo-entry__img {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+
   .evo-entry__name {
     font-size: 0.875rem;
   }

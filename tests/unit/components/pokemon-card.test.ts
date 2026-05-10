@@ -26,6 +26,14 @@ describe('PokemonCard', () => {
         isFavorited: true,
         accentColor: '#F7D02C',
       },
+      global: {
+        stubs: {
+          RouterLink: {
+            template: '<a class="router-link-stub" @click="$emit(\'click\', $event)"><slot /></a>',
+            props: ['to'],
+          },
+        },
+      },
     })
 
     expect(wrapper.text()).toContain('#0025')
@@ -59,6 +67,14 @@ describe('PokemonCard', () => {
         isFavorited: false,
         accentColor: null,
       },
+      global: {
+        stubs: {
+          RouterLink: {
+            template: '<a class="router-link-stub"><slot /></a>',
+            props: ['to'],
+          },
+        },
+      },
     })
 
     expect(wrapper.get('img').attributes('loading')).toBe('eager')
@@ -83,6 +99,14 @@ describe('PokemonCard', () => {
         paddedId: '0999',
         isFavorited: false,
         accentColor: null,
+      },
+      global: {
+        stubs: {
+          RouterLink: {
+            template: '<a class="router-link-stub"><slot /></a>',
+            props: ['to'],
+          },
+        },
       },
     })
 
