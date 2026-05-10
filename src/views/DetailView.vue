@@ -157,12 +157,16 @@ onUnmounted(() => {
 
         <section
           v-if="evolutionChain"
-          class="px-4 sm:px-8 py-8 max-w-5xl mx-auto w-full"
+          class="px-4 py-10 max-w-6xl mx-auto"
         >
           <h2
-            class="text-xl sm:text-2xl font-bold mb-6 text-center"
-            :style="{ color: primaryTypeColor }"
+            class="text-2xl font-black text-gray-900 mb-6 flex items-center gap-3"
+            style="font-family: 'Fredoka', sans-serif"
           >
+            <span
+              class="w-3 h-8 rounded-full"
+              :style="{ backgroundColor: primaryTypeColor }"
+            ></span>
             Evolution Chain
           </h2>
           <EvolutionTree
