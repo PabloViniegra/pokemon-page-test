@@ -22,7 +22,7 @@ import SortSelect from '../components/SortSelect.vue'
 import PokemonGrid from '../components/PokemonGrid.vue'
 
 const router = useRouter()
-const pokemonLogo = '/pokemon.svg'
+const pokemonLogo = `${import.meta.env.BASE_URL}pokemon.svg`
 const filtersStore = useFiltersStore()
 const { searchInput, selectedTypes, sortBy, showFilters, showFavoritesOnly } =
   storeToRefs(filtersStore)
