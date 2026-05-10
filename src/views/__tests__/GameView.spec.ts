@@ -18,7 +18,11 @@ const mockAttempts = ref(0)
 const mockIsRevealed = ref(false)
 const mockIsLoading = ref(false)
 const mockIsError = ref(false)
-const mockCurrentPokemon = ref({ id: 25, name: 'pikachu' })
+const mockCurrentPokemon = ref({
+  id: 25,
+  name: 'pikachu',
+  types: [{ slot: 1, type: { name: 'electric', url: 'https://pokeapi.co/type/13' } }],
+})
 const mockHintUsed = ref(false)
 const mockCurrentHint = ref('')
 const mockIsSpeciesLoading = ref(false)
@@ -41,77 +45,102 @@ vi.mock('../../composables/useWhoIsThatPokemonGame', () => ({
   })),
 }))
 
+vi.mock('../../composables/usePokemonQueries', () => ({
+  useAllPokemonListQuery: vi.fn(() => ({
+    data: ref({
+      results: [
+        { name: 'pikachu', url: 'https://pokeapi.co/api/v2/pokemon/25/' },
+        { name: 'bulbasaur', url: 'https://pokeapi.co/api/v2/pokemon/1/' },
+        { name: 'charmander', url: 'https://pokeapi.co/api/v2/pokemon/4/' },
+        { name: 'squirtle', url: 'https://pokeapi.co/api/v2/pokemon/7/' },
+        { name: 'eevee', url: 'https://pokeapi.co/api/v2/pokemon/133/' },
+      ],
+    }),
+  })),
+}))
+
 vi.mock('../../stores/gameStats', () => ({
   useGameStatsStore: vi.fn(() => ({
     totalRoundsPlayed: 0,
     totalCorrectGuesses: 0,
     totalAttempts: 0,
+    currentStreak: 0,
+    bestStreak: 0,
     recordRound: mockRecordRound,
   })),
 }))
 
+function createMatchMediaResult(matches: boolean): MediaQueryList {
+  return {
+    matches,
+    media: '(prefers-reduced-motion: reduce)',
+    onchange: null,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    dispatchEvent: vi.fn(() => false),
+  }
+}
+
 function mountGameView() {
-  return mount(GameView, {
-    global: {
-      stubs: {
-        PokemonSelectorModal: {
-          name: 'PokemonSelectorModal',
-          props: ['open'],
-          template: '<div class="modal-stub" v-if="open"><slot /></div>',
-        },
-      },
-    },
-  })
+  return mount(GameView)
 }
 
 describe('GameView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.stubGlobal('matchMedia', vi.fn(() => createMatchMediaResult(false)))
+
     mockStatus.value = 'idle'
     mockAttempts.value = 0
     mockIsRevealed.value = false
     mockIsLoading.value = false
     mockIsError.value = false
-    mockCurrentPokemon.value = { id: 25, name: 'pikachu' }
+    mockCurrentPokemon.value = {
+      id: 25,
+      name: 'pikachu',
+      types: [{ slot: 1, type: { name: 'electric', url: 'https://pokeapi.co/type/13' } }],
+    }
     mockHintUsed.value = false
     mockCurrentHint.value = ''
     mockIsSpeciesLoading.value = false
   })
 
-  it('renders the game title and silhouette', async () => {
+  it('renders title and silhouette', async () => {
     const wrapper = mountGameView()
     await flushPromises()
+
     expect(wrapper.text()).toContain("Who's that Pokémon?")
     expect(wrapper.find('img').exists()).toBe(true)
   })
 
-  it('shows the Guess button when idle', async () => {
+  it('renders four answer choices when idle', async () => {
     const wrapper = mountGameView()
     await flushPromises()
-    const buttons = wrapper.findAll('button')
-    const btn = buttons.find((b) => b.text().includes('Guess'))
-    expect(btn).toBeDefined()
+
+    const answerButtons = wrapper.findAll('[role="group"] button')
+    expect(answerButtons).toHaveLength(4)
   })
 
-  it('opens the selector modal on Guess click', async () => {
+  it('calls makeGuess when an answer choice is clicked', async () => {
     const wrapper = mountGameView()
     await flushPromises()
-    const buttons = wrapper.findAll('button')
-    const btn = buttons.find((b) => b.text().includes('Guess'))
-    await btn!.trigger('click')
-    await nextTick()
-    expect(wrapper.find('.modal-stub').exists()).toBe(true)
-  })
 
-  it('calls makeGuess and records stats on correct answer', async () => {
-    const wrapper = mountGameView()
-    await flushPromises()
-    const modal = wrapper.findComponent({ name: 'PokemonSelectorModal' })
-    await modal.vm.$emit('select', 25, 'pikachu')
+    const pikachuButton = wrapper
+      .findAll('[role="group"] button')
+      .find((button) => button.text().includes('pikachu'))
+    await pikachuButton!.trigger('click')
+
     expect(mockMakeGuess).toHaveBeenCalledWith('pikachu')
+  })
 
-    mockStatus.value = 'correct'
+  it('records successful round and triggers confetti on status change to correct', async () => {
+    mountGameView()
+    await flushPromises()
+
     mockAttempts.value = 2
+    mockStatus.value = 'correct'
     await nextTick()
     await flushPromises()
 
@@ -119,64 +148,82 @@ describe('GameView', () => {
     expect(mockConfetti).toHaveBeenCalled()
   })
 
-  it('shows try again message after incorrect guess', async () => {
+  it('shows incorrect feedback when status is incorrect', async () => {
     mockStatus.value = 'incorrect'
     mockAttempts.value = 1
+
     const wrapper = mountGameView()
     await flushPromises()
-    expect(wrapper.text()).toContain('Try again!')
+
+    expect(wrapper.text()).toContain('Not quite!')
+    expect(wrapper.text()).toContain('Attempt 1')
   })
 
-  it('shows Next Pokémon button after correct guess', async () => {
+  it('shows Next Pokémon button when status is correct', async () => {
     mockStatus.value = 'correct'
     mockAttempts.value = 1
+
     const wrapper = mountGameView()
     await flushPromises()
-    const buttons = wrapper.findAll('button')
-    const btn = buttons.find((b) => b.text().includes('Next Pokémon'))
-    expect(btn).toBeDefined()
+
+    const nextButton = wrapper
+      .findAll('button')
+      .find((button) => button.text().includes('Next Pokémon'))
+    expect(nextButton).toBeDefined()
   })
 
   it('calls nextRound when Next Pokémon is clicked', async () => {
     mockStatus.value = 'correct'
     mockAttempts.value = 1
+
     const wrapper = mountGameView()
     await flushPromises()
-    const buttons = wrapper.findAll('button')
-    const btn = buttons.find((b) => b.text().includes('Next Pokémon'))
-    await btn!.trigger('click')
+
+    const nextButton = wrapper
+      .findAll('button')
+      .find((button) => button.text().includes('Next Pokémon'))
+    await nextButton!.trigger('click')
+
     expect(mockNextRound).toHaveBeenCalled()
   })
 
-  it('shows the Give a hint button when idle', async () => {
+  it('shows Give a hint button when idle', async () => {
     const wrapper = mountGameView()
     await flushPromises()
+
     expect(wrapper.text()).toContain('Give a hint')
   })
 
   it('calls useHint when Give a hint is clicked', async () => {
     const wrapper = mountGameView()
     await flushPromises()
-    const buttons = wrapper.findAll('button')
-    const btn = buttons.find((b) => b.text().includes('Give a hint'))
-    expect(btn).toBeDefined()
-    await btn!.trigger('click')
+
+    const hintButton = wrapper
+      .findAll('button')
+      .find((button) => button.text().includes('Give a hint'))
+    await hintButton!.trigger('click')
+
     expect(mockUseHint).toHaveBeenCalled()
   })
 
-  it('displays the hint after useHint is triggered', async () => {
+  it('shows hint text and hides hint button when hint is used', async () => {
     mockHintUsed.value = true
-    mockCurrentHint.value = 'This Pokémon is an electric type.'
+    mockCurrentHint.value = 'It is an electric type and was introduced in GENERATION-I.'
+
     const wrapper = mountGameView()
     await flushPromises()
-    expect(wrapper.text()).toContain('This Pokémon is an electric type.')
+
+    expect(wrapper.text()).toContain(
+      'It is an electric type and was introduced in GENERATION-I.',
+    )
     expect(wrapper.text()).not.toContain('Give a hint')
   })
 
-  it('hides the hint button after a correct guess', async () => {
+  it('hides the hint button when status is correct', async () => {
     mockStatus.value = 'correct'
     const wrapper = mountGameView()
     await flushPromises()
+
     expect(wrapper.text()).not.toContain('Give a hint')
   })
 })

@@ -16,55 +16,19 @@ function formatTypes(types: PokemonType[]): string {
   return `a ${names.join('/')} type`
 }
 
-function randomItem<T>(arr: T[]): T | undefined {
-  if (arr.length === 0) return undefined
-  return arr[Math.floor(Math.random() * arr.length)]
-}
-
-function cleanFlavorText(text: string): string {
-  return text.replace(/[\f\n\r]/g, ' ').replace(/\s+/g, ' ').trim()
-}
-
 function generateHint(pokemon: PokemonDetail, species: PokemonSpeciesInfo): string {
-  const generators: (() => string | undefined)[] = [
-    () => `This Pokémon is ${formatTypes(pokemon.types)}.`,
-    () => {
-      const gen = species.generation?.name
-      if (!gen) return undefined
-      return `This Pokémon was introduced in ${gen}.`
-    },
-    () => {
-      const move = randomItem(pokemon.moves)
-      if (!move) return undefined
-      return `This Pokémon can learn the move ${move.move.name}.`
-    },
-    () => {
-      const ability = randomItem(pokemon.abilities)
-      if (!ability) return undefined
-      return `This Pokémon has the ability ${ability.ability.name}.`
-    },
-    () => {
-      const entries = species.flavor_text_entries?.filter((e) => e.language.name === 'en')
-      const entry = randomItem(entries)
-      if (!entry) return undefined
-      return cleanFlavorText(entry.flavor_text)
-    },
-    () => `This Pokémon's name starts with the letter "${pokemon.name[0].toUpperCase()}".`,
-    () => {
-      const color = species.color?.name
-      if (!color) return undefined
-      return `This Pokémon is ${color} in color.`
-    },
-  ]
+  const typeHint = formatTypes(pokemon.types)
+  const gen = species.generation?.name
+  const color = species.color?.name
 
-  for (let i = 0; i < 10; i++) {
-    const gen = randomItem(generators)
-    if (!gen) continue
-    const hint = gen()
-    if (hint) return hint
+  // Prefer the most informative hints first
+  if (gen) {
+    return `It is ${typeHint} and was introduced in ${gen.replace('generation-', 'Generation ').toUpperCase()}.`
   }
-
-  return `This Pokémon's name starts with the letter "${pokemon.name[0].toUpperCase()}".`
+  if (color) {
+    return `It is ${typeHint} and is ${color} in color.`
+  }
+  return `It is ${typeHint} and its name starts with "${pokemon.name[0].toUpperCase()}".`
 }
 
 export function useWhoIsThatPokemonGame() {
