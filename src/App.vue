@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { VueQueryDevtools } from '@tanstack/vue-query-devtools'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { computed } from 'vue'
 import { getPokemonImageUrl } from './helpers/pokemon-api'
 import { useTheme } from './composables/useTheme'
 
 const route = useRoute()
-const router = useRouter()
 const { theme, isDark, toggleLabel, toggleTheme } = useTheme()
 
 const solgaleoArtwork = getPokemonImageUrl(791)
@@ -26,8 +25,8 @@ const isDev = import.meta.env.DEV
       <div
         class="max-w-7xl mx-auto px-4 py-2 sm:py-0 sm:h-14 flex flex-col sm:flex-row items-stretch sm:items-center justify-center sm:justify-between gap-2 sm:gap-3"
       >
-        <button
-          @click="router.push({ name: 'home' })"
+        <router-link
+          :to="{ name: 'home' }"
           class="flex items-center gap-2 font-black text-lg tracking-tight shrink-0"
           :class="isHome ? 'text-red-600' : 'text-gray-700 hover:text-red-600'"
           style="font-family: 'Fredoka', sans-serif"
@@ -51,10 +50,10 @@ const isDev = import.meta.env.DEV
             <circle cx="12" cy="12" r="3" fill="white" stroke-width="2" />
           </svg>
           <span class="hidden sm:inline">Pokédex</span>
-        </button>
+        </router-link>
         <div class="grid grid-cols-3 gap-1 w-full sm:w-auto sm:flex sm:items-center min-w-0">
-          <button
-            @click="router.push({ name: 'home' })"
+          <router-link
+            :to="{ name: 'home' }"
             class="w-full sm:w-auto px-2 sm:px-4 py-2 rounded-xl text-[11px] sm:text-sm font-bold transition-colors whitespace-nowrap min-w-0"
             :class="
               isHome
@@ -64,9 +63,9 @@ const isDev = import.meta.env.DEV
           >
             <span class="hidden sm:inline">Pokédex</span>
             <span class="sm:hidden">Dex</span>
-          </button>
-          <button
-            @click="router.push({ name: 'team-builder' })"
+          </router-link>
+          <router-link
+            :to="{ name: 'team-builder' }"
             class="w-full sm:w-auto px-2 sm:px-4 py-2 rounded-xl text-[11px] sm:text-sm font-bold transition-colors whitespace-nowrap min-w-0"
             :class="
               isTeamBuilder
@@ -76,9 +75,9 @@ const isDev = import.meta.env.DEV
           >
             <span class="hidden sm:inline">Team Builder</span>
             <span class="sm:hidden">Team</span>
-          </button>
-          <button
-            @click="router.push({ name: 'game' })"
+          </router-link>
+          <router-link
+            :to="{ name: 'game' }"
             class="w-full sm:w-auto px-2 sm:px-4 py-2 rounded-xl text-[11px] sm:text-sm font-bold transition-colors whitespace-nowrap min-w-0"
             :class="
               isGame
@@ -88,7 +87,7 @@ const isDev = import.meta.env.DEV
           >
             <span class="hidden sm:inline">Who's that Pokémon?</span>
             <span class="sm:hidden">Game</span>
-          </button>
+          </router-link>
         </div>
       </div>
     </nav>

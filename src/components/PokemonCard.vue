@@ -19,10 +19,10 @@ const favoritesStore = useFavoritesStore()
 </script>
 
 <template>
-  <div
-    class="pokemon-card group relative bg-white rounded-3xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border-2 border-gray-100"
+  <router-link
+    :to="{ name: 'pokemon-detail', params: { id: name } }"
+    class="pokemon-card group relative bg-white rounded-3xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border-2 border-gray-100 block text-inherit no-underline"
     :class="accentColor ? 'hover:border-gray-200' : 'hover:border-gray-200'"
-    @click="$emit('select', name)"
     @mouseenter="$emit('hover', name)"
   >
     <div
@@ -36,7 +36,7 @@ const favoritesStore = useFavoritesStore()
     >
       <img
         :src="imageUrl"
-        :alt="name"
+        :alt="`${name} Pokémon`"
         class="w-24 h-24 object-contain drop-shadow-md transition-transform duration-300 group-hover:scale-110"
         :loading="parseInt(paddedId) <= 20 ? 'eager' : 'lazy'"
         decoding="async"
@@ -76,7 +76,7 @@ const favoritesStore = useFavoritesStore()
         {{ name }}
       </p>
     </div>
-  </div>
+  </router-link>
 </template>
 
 <style scoped>

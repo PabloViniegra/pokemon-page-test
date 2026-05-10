@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { shallowRef } from 'vue'
 import {
@@ -8,6 +8,7 @@ import {
   useEvolutionChainQuery,
 } from '../composables/usePokemonQueries'
 import { TYPE_COLORS } from '../types/pokemon'
+import { updateSeoHead } from '../composables/useSeoHead'
 import PokemonHero from '../components/PokemonHero.vue'
 import PokemonStats from '../components/PokemonStats.vue'
 import PokemonAbilities from '../components/PokemonAbilities.vue'
@@ -40,6 +41,52 @@ const primaryTypeColor = computed(() => {
 const deferredSectionsReady = ref(false)
 queueMicrotask(() => {
   deferredSectionsReady.value = true
+})
+
+const IMAGE_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork'
+
+watch(
+  pokemon,
+  (p) => {
+    if (!p) return
+
+    const types = p.types.map((t) => t.type.name)
+    const description = species.value?.flavor_text_entries.find(
+      (e) => e.language.name === 'en',
+    )?.flavor_text.replace(/\f/g, ' ')
+
+    updateSeoHead({
+      title: `${p.name.charAt(0).toUpperCase() + p.name.slice(1)} (#${p.id})`,
+      description:
+        description ||
+        `Pokédex entry for ${p.name} (#${p.id}). Type: ${types.join('/')}. Height: ${p.height / 10}m, Weight: ${p.weight / 10}kg.`,
+      canonicalPath: `/pokemon/${p.id}`,
+      robots: 'index, follow',
+      ogImage: `${IMAGE_BASE}/${p.id}.png`,
+      jsonLd: {
+        id: 'jsonld-product',
+        data: {
+          '@context': 'https://schema.org',
+          '@type': 'Product',
+          name: `${p.name.charAt(0).toUpperCase() + p.name.slice(1)} (#${p.id})`,
+          image: `${IMAGE_BASE}/${p.id}.png`,
+          description:
+            description ||
+            `Pokédex entry for ${p.name}. Type: ${types.join('/')}.`,
+          brand: { '@type': 'Brand', name: 'Pokémon' },
+          url: `/pokemon/${p.id}`,
+        },
+      },
+    })
+  },
+  { immediate: true },
+)
+
+onUnmounted(() => {
+  updateSeoHead({
+    title: 'Pokédex – Explore Every Pokémon',
+    canonicalPath: '/',
+  })
 })
 </script>
 
