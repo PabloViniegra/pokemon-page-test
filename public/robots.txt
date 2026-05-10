@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://PabloViniegra.github.io/pokemon-page-test/sitemap.xml
+Sitemap: https://pabloviniegra.github.io/pokemon-page-test/sitemap.xml
