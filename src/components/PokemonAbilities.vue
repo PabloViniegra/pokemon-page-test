@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { gsap } from 'gsap'
 import { useQueries } from '@tanstack/vue-query'
+import { computed, useTemplateRef } from 'vue'
 import type { PokemonAbility } from '../types/pokemon'
+import { useGsapContext } from '../composables/useGsapContext'
 import { getAbilityDetail } from '../helpers/pokemon-api'
 
 const props = defineProps<{
@@ -9,6 +11,35 @@ const props = defineProps<{
 }>()
 
 const STALE_TIME = 1000 * 60 * 60 * 24
+
+const sectionRef = useTemplateRef<HTMLElement>('sectionRef')
+
+useGsapContext(sectionRef, ({ root, q }) => {
+  gsap.timeline({
+    defaults: { ease: 'power3.out' },
+    scrollTrigger: {
+      trigger: root,
+      start: 'top 80%',
+      once: true,
+    },
+  })
+    .from(q('.abilities-heading'), {
+      y: 30,
+      autoAlpha: 0,
+      duration: 0.46,
+    })
+    .from(
+      q('.ability-card'),
+      {
+        y: 24,
+        autoAlpha: 0,
+        scale: 0.92,
+        stagger: 0.1,
+        duration: 0.36,
+      },
+      '-=0.08',
+    )
+})
 
 const abilityQueries = useQueries({
   queries: computed(() =>
@@ -29,9 +60,9 @@ function getShortEffect(index: number): string {
 </script>
 
 <template>
-  <section class="px-4 py-10 max-w-6xl mx-auto">
+  <section ref="sectionRef" class="px-4 py-10 max-w-6xl mx-auto">
     <h2
-      class="text-2xl font-black text-gray-900 mb-4 flex items-center gap-3"
+      class="abilities-heading text-2xl font-black text-gray-900 mb-4 flex items-center gap-3"
       style="font-family: 'Fredoka', sans-serif"
     >
       <span class="w-3 h-8 rounded-full bg-red-500"></span>
@@ -41,7 +72,7 @@ function getShortEffect(index: number): string {
       <div
         v-for="(ability, index) in abilities"
         :key="ability.ability.name"
-        class="flex flex-col gap-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 max-w-sm"
+        class="ability-card flex flex-col gap-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 max-w-sm"
       >
         <div class="flex items-center gap-2">
           <span class="text-gray-900 font-bold capitalize text-sm">{{

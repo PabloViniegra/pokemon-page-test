@@ -123,6 +123,27 @@ describe('EvolutionTree', () => {
     expect(mockPush).toHaveBeenCalledWith('/pokemon/25')
   })
 
+  it('navigates to clicked evolved pokemon instead of current pokemon', async () => {
+    const node = createNode('charmander', 4, [], [
+      createNode('charmeleon', 5, [
+        { trigger: { name: 'level-up' }, min_level: 16 } as any,
+      ], [
+        createNode('charizard', 6, [
+          { trigger: { name: 'level-up' }, min_level: 36 } as any,
+        ]),
+      ]),
+    ])
+
+    const wrapper = mount(EvolutionTree, {
+      props: { node, currentPokemonId: 4 },
+    })
+
+    const cards = wrapper.findAll('.evo-entry__card')
+    await cards[1].trigger('click')
+
+    expect(mockPush).toHaveBeenLastCalledWith('/pokemon/5')
+  })
+
   it('applies accent color to the tree', () => {
     const node = createNode('bulbasaur', 1, [], [
       createNode('ivysaur', 2, [

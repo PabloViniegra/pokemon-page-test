@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, watch, onUnmounted } from 'vue'
+import { computed, nextTick, onUnmounted, ref, shallowRef, watch } from 'vue'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useRouter } from 'vue-router'
-import { shallowRef } from 'vue'
 import {
   usePokemonDetailQuery,
   usePokemonSpeciesQuery,
@@ -23,10 +23,11 @@ const props = defineProps<{
 
 const router = useRouter()
 const showShiny = shallowRef(false)
+const pokemonId = computed(() => props.id)
 
-const { data: pokemon, isLoading, isError } = usePokemonDetailQuery(props.id)
+const { data: pokemon, isLoading, isError } = usePokemonDetailQuery(pokemonId)
 const { data: species } = usePokemonSpeciesQuery(
-  props.id,
+  pokemonId,
   computed(() => pokemon.value?.species.url),
 )
 const { data: evolutionChain } = useEvolutionChainQuery(
@@ -39,9 +40,33 @@ const primaryTypeColor = computed(() => {
 })
 
 const deferredSectionsReady = ref(false)
+
+window.scrollTo({ top: 0, behavior: 'instant' })
+
 queueMicrotask(() => {
   deferredSectionsReady.value = true
 })
+
+watch(
+  () => props.id,
+  () => {
+    window.scrollTo({ top: 0, behavior: 'instant' })
+    showShiny.value = false
+    deferredSectionsReady.value = false
+    queueMicrotask(() => {
+      deferredSectionsReady.value = true
+    })
+  },
+)
+
+watch(
+  () => [deferredSectionsReady.value, species.value, evolutionChain.value],
+  async ([ready]) => {
+    if (!ready) return
+    await nextTick()
+    ScrollTrigger.refresh()
+  },
+)
 
 const IMAGE_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork'
 
@@ -132,6 +157,7 @@ onUnmounted(() => {
 
     <template v-else-if="pokemon">
       <PokemonHero
+        :key="`hero-${pokemon.id}`"
         :pokemon="pokemon"
         :species="species"
         :show-shiny="showShiny"
@@ -139,25 +165,41 @@ onUnmounted(() => {
         @back="router.back()"
       />
 
-      <PokemonStats :stats="pokemon.stats" :accent-color="primaryTypeColor" />
+      <PokemonStats
+        :key="`stats-${pokemon.id}`"
+        :stats="pokemon.stats"
+        :accent-color="primaryTypeColor"
+      />
 
-      <PokemonAbilities :abilities="pokemon.abilities" />
+      <PokemonAbilities
+        :key="`abilities-${pokemon.id}`"
+        :abilities="pokemon.abilities"
+      />
 
-      <PokemonSprites :sprites="pokemon.sprites" :pokemon-name="pokemon.name" />
+      <PokemonSprites
+        :key="`sprites-${pokemon.id}`"
+        :sprites="pokemon.sprites"
+        :pokemon-name="pokemon.name"
+      />
 
       <div v-if="deferredSectionsReady">
         <PokemonMoves
+          :key="`moves-${pokemon.id}`"
           :moves="pokemon.moves"
           :game-indices="pokemon.game_indices"
           :held-items="pokemon.held_items"
           :past-types="pokemon.past_types"
         />
 
-        <PokemonSpeciesInfo v-if="species" :species="species" />
+        <PokemonSpeciesInfo
+          v-if="species"
+          :key="`species-${pokemon.id}`"
+          :species="species"
+        />
 
         <section
           v-if="evolutionChain"
-          class="px-4 py-10 max-w-6xl mx-auto"
+          class="px-4 py-10 max-w-6xl mx-auto evolution-section"
         >
           <h2
             class="text-2xl font-black text-gray-900 mb-6 flex items-center gap-3"
@@ -170,7 +212,7 @@ onUnmounted(() => {
             Evolution Chain
           </h2>
           <EvolutionTree
-            v-if="evolutionChain"
+            :key="`evolution-${pokemon.id}`"
             :node="evolutionChain"
             :accent-color="primaryTypeColor"
             :current-pokemon-id="pokemon.id"

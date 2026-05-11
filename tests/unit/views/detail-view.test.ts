@@ -8,10 +8,14 @@ const speciesRef = ref<any>(undefined)
 const isLoadingRef = ref(false)
 const isErrorRef = ref(false)
 const back = vi.fn()
+const detailArgs: Array<any[]> = []
 const speciesArgs: Array<any[]> = []
 
 vi.mock('../../../src/composables/usePokemonQueries', () => ({
-  usePokemonDetailQuery: () => ({ data: pokemonRef, isLoading: isLoadingRef, isError: isErrorRef }),
+  usePokemonDetailQuery: (...args: any[]) => {
+    detailArgs.push(args)
+    return { data: pokemonRef, isLoading: isLoadingRef, isError: isErrorRef }
+  },
   usePokemonSpeciesQuery: (...args: any[]) => {
     speciesArgs.push(args)
     return { data: speciesRef }
@@ -32,6 +36,7 @@ describe('DetailView', async () => {
     isLoadingRef.value = false
     isErrorRef.value = false
     back.mockClear()
+    detailArgs.length = 0
     speciesArgs.length = 0
   })
 
@@ -77,7 +82,8 @@ describe('DetailView', async () => {
     expect(wrapper.find('.sprites').exists()).toBe(true)
     expect(wrapper.find('.moves').exists()).toBe(true)
     expect(wrapper.find('.species').exists()).toBe(true)
-    expect(speciesArgs[0][0]).toBe('25')
+    expect(detailArgs[0][0].value).toBe('25')
+    expect(speciesArgs[0][0].value).toBe('25')
     expect(speciesArgs[0][1].value).toBe('https://pokeapi.co/api/v2/pokemon-species/25/')
 
     await wrapper.get('.toggle').trigger('click')
@@ -105,7 +111,34 @@ describe('DetailView', async () => {
     })
 
     expect(wrapper.find('.species').exists()).toBe(false)
+    expect(speciesArgs[0][0].value).toBe('25')
     expect(speciesArgs[0][1].value).toBe('https://pokeapi.co/api/v2/pokemon-species/25/')
+  })
+
+  it('keeps query id reactive when route id prop changes', async () => {
+    pokemonRef.value = createPokemonDetail()
+    speciesRef.value = createPokemonSpeciesInfo()
+
+    const wrapper = mount(DetailView, {
+      props: { id: '25' },
+      global: {
+        stubs: {
+          PokemonHero: true,
+          PokemonStats: true,
+          PokemonAbilities: true,
+          PokemonSprites: true,
+          PokemonMoves: true,
+          PokemonSpeciesInfo: true,
+        },
+      },
+    })
+
+    expect(detailArgs[0][0].value).toBe('25')
+
+    await wrapper.setProps({ id: '6' })
+
+    expect(detailArgs[0][0].value).toBe('6')
+    expect(speciesArgs[0][0].value).toBe('6')
   })
 
   it('falls back to the default accent color when the pokemon has no types', () => {

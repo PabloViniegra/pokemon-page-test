@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { gsap } from 'gsap'
 import { computed } from 'vue'
+import { useTemplateRef } from 'vue'
 import { useRouter } from 'vue-router'
+import { useGsapContext } from '../composables/useGsapContext'
 import type { EvolutionNode, EvolutionStage } from '../types/pokemon'
 import { computeEvolutionStages } from '../helpers/pokemon-api'
 
@@ -16,6 +19,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const router = useRouter()
+const treeRef = useTemplateRef<HTMLElement>('treeRef')
 
 const stages = computed(() => computeEvolutionStages(props.node))
 
@@ -47,10 +51,49 @@ const groupedStages = computed<GroupedStage[]>(() => {
 function navigateToPokemon(id: number) {
   router.push(`/pokemon/${id}`)
 }
+
+useGsapContext(treeRef, ({ root, q }) => {
+  gsap.timeline({
+    defaults: { ease: 'power3.out' },
+    scrollTrigger: {
+      trigger: root,
+      start: 'top 80%',
+      once: true,
+    },
+  })
+    .from(q('.evo-connector-rail'), {
+      scaleY: 0,
+      transformOrigin: 'top center',
+      stagger: 0.1,
+      duration: 0.44,
+    })
+    .from(
+      q('.evo-branch'),
+      {
+        x: -16,
+        autoAlpha: 0,
+        stagger: 0.05,
+        duration: 0.24,
+      },
+      '-=0.16',
+    )
+    .from(
+      q('.evo-entry__card'),
+      {
+        y: 26,
+        autoAlpha: 0,
+        scale: 0.9,
+        stagger: 0.1,
+        duration: 0.36,
+      },
+      '-=0.02',
+    )
+})
 </script>
 
 <template>
   <div
+    ref="treeRef"
     class="evo-tree"
     :style="{ '--evo-accent': accentColor }"
   >
@@ -92,11 +135,7 @@ function navigateToPokemon(id: number) {
           v-for="(group, gi) in stage.groups"
           :key="group.parentId"
         >
-          <div
-            v-for="entry in group.entries"
-            :key="entry.node.speciesId"
-            class="evo-entry"
-          >
+          <div v-for="entry in group.entries" :key="entry.node.speciesId" class="evo-entry">
             <button
               class="evo-entry__card"
               :class="{
@@ -140,8 +179,6 @@ function navigateToPokemon(id: number) {
   --evo-accent: #a8a77a;
   position: relative;
   display: flex;
-  overflow-x: auto;
-  overflow-y: visible;
   padding-bottom: 1rem;
   padding-top: 0.5rem;
   padding-left: 0.5rem;
@@ -155,6 +192,7 @@ function navigateToPokemon(id: number) {
   align-self: stretch;
   min-width: 2.5rem;
   padding: 0 0.25rem;
+  flex-shrink: 0;
 }
 
 .evo-connector-rail {
@@ -200,13 +238,16 @@ function navigateToPokemon(id: number) {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+  width: 7rem;
   min-width: 7rem;
+  flex-shrink: 0;
 }
 
 .evo-entry {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
+  width: 100%;
   min-height: 5.5rem;
 }
 
@@ -219,6 +260,7 @@ function navigateToPokemon(id: number) {
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
   gap: 0.375rem;
   padding: 0.5rem;
   border-radius: 0.75rem;
@@ -319,6 +361,7 @@ function navigateToPokemon(id: number) {
   }
 
   .evo-stage {
+    width: 8.5rem;
     min-width: 8.5rem;
   }
 
