@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import { gsap } from 'gsap'
 import type { PokemonCardDisplay } from '../types/pokemon'
+import { useTemplateRef } from 'vue'
+import { useGsapContext } from '../composables/useGsapContext'
 import PokemonCard from './PokemonCard.vue'
-import { ref, onMounted } from 'vue'
 
-defineProps<{
+const props = defineProps<{
   pokemons: PokemonCardDisplay[]
   animate?: boolean
 }>()
@@ -13,18 +15,33 @@ defineEmits<{
   hover: [name: string]
 }>()
 
-const hasMounted = ref(false)
-onMounted(() => {
-  hasMounted.value = true
+const gridRoot = useTemplateRef<HTMLElement>('gridRoot')
+
+useGsapContext(gridRoot, ({ q }) => {
+  if (!props.animate) return
+
+  const cards = q('.pokemon-grid-card')
+  if (!cards.length) return
+
+  gsap.from(cards, {
+    y: 26,
+    scale: 0.96,
+    autoAlpha: 0,
+    duration: 0.42,
+    stagger: 0.04,
+    ease: 'power3.out',
+    clearProps: 'transform,opacity,visibility',
+  })
 })
 </script>
 
 <template>
   <div
+    ref="gridRoot"
     class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
   >
     <PokemonCard
-      v-for="(pokemon, index) in pokemons"
+      v-for="pokemon in pokemons"
       :key="pokemon.name"
       :name="pokemon.name"
       :url="pokemon.url"
@@ -32,30 +49,9 @@ onMounted(() => {
       :paddedId="pokemon.paddedId"
       :isFavorited="pokemon.isFavorited"
       :accentColor="pokemon.accentColor"
-      :class="{ 'animate-fade-in-up': animate && !hasMounted }"
-      :style="
-        animate && !hasMounted ? { animationDelay: `${index * 30}ms` } : {}
-      "
+      class="pokemon-grid-card"
       @select="$emit('select', $event)"
       @hover="$emit('hover', $event)"
     />
   </div>
 </template>
-
-<style scoped>
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in-up {
-  animation: fade-in-up 0.5s ease-out forwards;
-  opacity: 0;
-}
-</style>

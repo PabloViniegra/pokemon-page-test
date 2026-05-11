@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { gsap } from 'gsap'
+import { ref, computed, nextTick, useTemplateRef, watch } from 'vue'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useFiltersStore } from '../stores/filters'
@@ -12,6 +13,7 @@ import {
   useFavoritePokemonListQuery,
 } from '../composables/usePokemonQueries'
 import { useDebounce } from '../composables/useDebounce'
+import { useGsapContext } from '../composables/useGsapContext'
 import { useIntersectionObserver } from '../composables/useIntersectionObserver'
 import { getPokemonId, getPokemonImageUrl } from '../helpers/pokemon-api'
 import { TYPE_COLORS } from '../types/pokemon'
@@ -23,12 +25,15 @@ import PokemonGrid from '../components/PokemonGrid.vue'
 
 const router = useRouter()
 const pokemonLogo = `${import.meta.env.BASE_URL}pokemon.svg`
+const heroHeader = useTemplateRef<HTMLElement>('heroHeader')
+const controlsSurface = useTemplateRef<HTMLElement>('controlsSurface')
 const filtersStore = useFiltersStore()
 const { searchInput, selectedTypes, sortBy, showFilters, showFavoritesOnly } =
   storeToRefs(filtersStore)
 const { toggleFilters } = filtersStore
 const favoritesStore = useFavoritesStore()
 const { prefetchPokemonDetail } = usePrefetchPokemon()
+const hasAnimatedInitialGrid = ref(false)
 
 const debouncedSearch = useDebounce(searchInput, 400)
 
@@ -164,6 +169,63 @@ useIntersectionObserver(
   { rootMargin: '200px' },
 )
 
+useGsapContext(heroHeader, ({ q }) => {
+  gsap
+    .timeline({
+      defaults: {
+        ease: 'power3.out',
+        clearProps: 'transform,opacity,visibility',
+      },
+    })
+    .from(q('.home-hero-dots'), {
+      y: -18,
+      scale: 1.06,
+      autoAlpha: 0,
+      duration: 0.38,
+    })
+    .from(
+      q('.home-hero-logo'),
+      {
+        y: 34,
+        scale: 0.9,
+        autoAlpha: 0,
+        duration: 0.5,
+        ease: 'expo.out',
+      },
+      0.08,
+    )
+    .from(
+      q('.home-hero-title'),
+      {
+        y: 26,
+        autoAlpha: 0,
+        duration: 0.34,
+      },
+      0.18,
+    )
+    .from(
+      q('.home-hero-copy'),
+      {
+        y: 20,
+        autoAlpha: 0,
+        duration: 0.28,
+      },
+      0.24,
+    )
+})
+
+useGsapContext(controlsSurface, ({ q }) => {
+  gsap.from(q('.home-toolbar > *'), {
+    y: 18,
+    autoAlpha: 0,
+    duration: 0.28,
+    stagger: 0.06,
+    ease: 'power3.out',
+    delay: 0.08,
+    clearProps: 'transform,opacity,visibility',
+  })
+})
+
 function goToDetail(name: string) {
   router.push({ name: 'pokemon-detail', params: { id: name } })
 }
@@ -188,6 +250,31 @@ const showInfiniteScroll = computed(
     hasNextPage.value,
 )
 
+const shouldAnimateInitialGrid = computed(
+  () =>
+    !hasAnimatedInitialGrid.value &&
+    !debouncedSearch.value.trim() &&
+    selectedTypes.value.length === 0 &&
+    !showFavoritesOnly.value,
+)
+
+watch(
+  () => displayedPokemon.value.length,
+  async (count) => {
+    if (count === 0 || hasAnimatedInitialGrid.value) return
+    if (
+      debouncedSearch.value.trim() ||
+      selectedTypes.value.length > 0 ||
+      showFavoritesOnly.value
+    ) {
+      return
+    }
+
+    await nextTick()
+    hasAnimatedInitialGrid.value = true
+  },
+)
+
 onBeforeRouteLeave(() => {
   sessionStorage.setItem('pokedex-scroll-y', String(window.scrollY))
 })
@@ -195,9 +282,12 @@ onBeforeRouteLeave(() => {
 
 <template>
   <main class="app-page relative">
-    <header class="pokemon-page-header pokemon-page-header--home relative overflow-hidden">
+    <header
+      ref="heroHeader"
+      class="pokemon-page-header pokemon-page-header--home relative overflow-hidden"
+    >
       <div
-        class="absolute inset-0 opacity-10"
+        class="home-hero-dots absolute inset-0 opacity-10"
         style="
           background-image:
             radial-gradient(circle at 20px 20px, white 8px, transparent 8px),
@@ -206,7 +296,7 @@ onBeforeRouteLeave(() => {
         "
       ></div>
       <div class="relative z-10 max-w-7xl mx-auto px-4 py-8 sm:py-10 text-center">
-        <div class="pokemon-logo-wrapper mb-4 sm:mb-5">
+        <div class="home-hero-logo pokemon-logo-wrapper mb-4 sm:mb-5">
           <img
             :src="pokemonLogo"
             alt="Pokémon"
@@ -214,7 +304,7 @@ onBeforeRouteLeave(() => {
           />
         </div>
         <h1
-          class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tighter mb-3 text-white"
+          class="home-hero-title text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tighter mb-3 text-white"
           style="
             font-family: 'Fredoka', sans-serif;
             text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.2);
@@ -223,7 +313,7 @@ onBeforeRouteLeave(() => {
           Pokédex
         </h1>
         <p
-          class="text-white/90 text-lg max-w-xl mx-auto font-medium"
+          class="home-hero-copy text-white/90 text-lg max-w-xl mx-auto font-medium"
           style="text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2)"
         >
           Explore all {{ infiniteData?.pages[0]?.count || '...' }} Pokémon
@@ -233,10 +323,11 @@ onBeforeRouteLeave(() => {
     </header>
 
     <section
+      ref="controlsSurface"
       class="app-surface sticky top-20 sm:top-14 z-30 border-b-2 border-gray-200 shadow-sm px-4 py-4"
     >
       <div
-        class="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 items-center"
+        class="home-toolbar max-w-7xl mx-auto flex flex-col md:flex-row gap-4 items-center"
       >
         <SearchBar v-model="searchInput" />
         <SortSelect v-model="sortBy" />
@@ -323,7 +414,7 @@ onBeforeRouteLeave(() => {
       <div v-else>
         <PokemonGrid
           :pokemons="displayedPokemon"
-          :animate="!debouncedSearch"
+          :animate="shouldAnimateInitialGrid"
           @select="goToDetail"
           @hover="prefetchPokemonDetail"
         />
