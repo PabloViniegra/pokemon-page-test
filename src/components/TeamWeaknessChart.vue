@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watch, nextTick, useTemplateRef } from 'vue'
+import { gsap } from 'gsap'
 import { TYPE_COLORS } from '../types/pokemon'
 import { analyzeTeamWeaknesses } from '../helpers/type-chart'
 import type { PokemonTypeName } from '../helpers/type-chart'
@@ -52,15 +53,105 @@ const vulnerabilitySummary = computed(() => {
   )
   return { critical, major, resistant }
 })
+
+const chartRoot = useTemplateRef<HTMLElement>('chartRoot')
+
+function animateBars() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+  nextTick(() => {
+    const root = chartRoot.value
+    if (!root) return
+
+    const bars = root.querySelectorAll<HTMLElement>('.matchup-bar')
+    const labels = root.querySelectorAll<HTMLElement>('.matchup-label')
+
+    bars.forEach((bar, i) => {
+      const item = sortedAnalysis.value[i]
+      if (!item) return
+
+      const targetWidth = `${Math.min((item.averageEffectiveness / maxAvg.value) * 100, 100)}%`
+
+      gsap.killTweensOf(bar)
+      gsap.fromTo(
+        bar,
+        { width: '0%' },
+        {
+          width: targetWidth,
+          duration: 0.22,
+          ease: 'power2.out',
+        },
+      )
+    })
+
+    labels.forEach((label) => {
+      gsap.killTweensOf(label)
+      gsap.fromTo(
+        label,
+        { autoAlpha: 0 },
+        {
+          autoAlpha: 1,
+          duration: 0.15,
+          delay: 0.12,
+          ease: 'power2.out',
+        },
+      )
+    })
+  })
+}
+
+watch(
+  () => props.teamTypes,
+  () => {
+    if (props.teamTypes.length > 0) {
+      animateBars()
+    }
+  },
+  { immediate: true, flush: 'post' },
+)
+
+function onAlertEnter(el: Element, done: () => void) {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    done()
+    return
+  }
+  gsap.from(el, {
+    x: -16,
+    autoAlpha: 0,
+    duration: 0.2,
+    ease: 'power3.out',
+    onComplete: done,
+    clearProps: 'transform,opacity,visibility',
+  })
+}
+
+function onAlertLeave(el: Element, done: () => void) {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    done()
+    return
+  }
+  gsap.to(el, {
+    x: 16,
+    autoAlpha: 0,
+    duration: 0.15,
+    ease: 'power2.in',
+    onComplete: done,
+  })
+}
 </script>
 
 <template>
   <div class="space-y-6">
     <!-- Summary alerts -->
-    <div v-if="teamTypes.length > 0" class="space-y-3">
+    <TransitionGroup
+      tag="div"
+      class="space-y-3"
+      @enter="onAlertEnter"
+      @leave="onAlertLeave"
+    >
       <div
         v-for="item in vulnerabilitySummary.critical"
-        :key="item.type"
+        :key="`critical-${item.type}`"
         class="flex items-center gap-3 bg-red-50 border border-red-200 rounded-2xl px-4 py-3"
       >
         <div
@@ -90,7 +181,7 @@ const vulnerabilitySummary = computed(() => {
 
       <div
         v-for="item in vulnerabilitySummary.major"
-        :key="item.type"
+        :key="`major-${item.type}`"
         class="flex items-center gap-3 bg-orange-50 border border-orange-200 rounded-2xl px-4 py-3"
       >
         <div
@@ -118,7 +209,7 @@ const vulnerabilitySummary = computed(() => {
 
       <div
         v-for="item in vulnerabilitySummary.resistant"
-        :key="item.type"
+        :key="`resistant-${item.type}`"
         class="flex items-center gap-3 bg-green-50 border border-green-200 rounded-2xl px-4 py-3"
       >
         <div
@@ -145,10 +236,10 @@ const vulnerabilitySummary = computed(() => {
           </p>
         </div>
       </div>
-    </div>
+    </TransitionGroup>
 
     <!-- Chart -->
-    <div class="bg-white rounded-3xl border-2 border-gray-100 p-5">
+    <div ref="chartRoot" class="bg-white rounded-3xl border-2 border-gray-100 p-5">
       <h3 class="text-lg font-bold text-gray-900 mb-4">
         Type Matchup Analysis
       </h3>
@@ -191,14 +282,14 @@ const vulnerabilitySummary = computed(() => {
               class="flex-1 h-8 bg-gray-100 rounded-xl overflow-hidden relative"
             >
               <div
-                class="h-full rounded-xl transition-all duration-500 flex items-center px-2"
+                class="matchup-bar h-full rounded-xl transition-all duration-500 flex items-center px-2"
                 :class="getBarBgClass(item.averageEffectiveness)"
                 :style="{
                   width: `${Math.min((item.averageEffectiveness / maxAvg) * 100, 100)}%`,
                 }"
               >
                 <span
-                  class="text-[10px] font-bold text-white whitespace-nowrap"
+                  class="matchup-label text-[10px] font-bold text-white whitespace-nowrap"
                 >
                   {{ item.averageEffectiveness.toFixed(2) }}x
                 </span>

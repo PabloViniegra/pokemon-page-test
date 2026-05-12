@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watch, nextTick, useTemplateRef } from 'vue'
+import { gsap } from 'gsap'
 import { getPokemonImageUrl } from '../helpers/pokemon-api'
 import { TYPE_COLORS } from '../types/pokemon'
 
@@ -25,6 +26,48 @@ const imageUrl = computed(() => {
 const typeColors = computed(() => {
   return props.types.map((t) => TYPE_COLORS[t]).filter(Boolean)
 })
+
+const filledContent = useTemplateRef<HTMLElement>('filledContent')
+const emptyContent = useTemplateRef<HTMLElement>('emptyContent')
+
+function animateIn(element: HTMLElement | null, isAdd: boolean) {
+  if (!element) return
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+  gsap.killTweensOf(element)
+
+  if (isAdd) {
+    gsap.from(element, {
+      scale: 0.88,
+      y: 18,
+      autoAlpha: 0,
+      duration: 0.22,
+      ease: 'power3.out',
+      clearProps: 'transform,opacity,visibility',
+    })
+  } else {
+    gsap.from(element, {
+      scale: 0.95,
+      autoAlpha: 0,
+      duration: 0.14,
+      ease: 'power2.out',
+      clearProps: 'transform,opacity,visibility',
+    })
+  }
+}
+
+watch(
+  () => props.id,
+  async (newId) => {
+    await nextTick()
+    if (newId !== null) {
+      animateIn(filledContent.value, true)
+    } else {
+      animateIn(emptyContent.value, false)
+    }
+  },
+  { flush: 'post' },
+)
 </script>
 
 <template>
@@ -39,6 +82,7 @@ const typeColors = computed(() => {
   >
     <div
       v-if="isEmpty"
+      ref="emptyContent"
       class="flex flex-col items-center justify-center py-6 px-4 gap-2 min-h-[140px]"
     >
       <div
@@ -63,7 +107,7 @@ const typeColors = computed(() => {
       >
     </div>
 
-    <div v-else class="flex flex-col items-center py-4 px-3 gap-2 min-h-35">
+    <div v-else ref="filledContent" class="flex flex-col items-center py-4 px-3 gap-2 min-h-35">
       <button
         class="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 hover:bg-red-100 text-gray-400 hover:text-red-500 transition-colors z-10"
         aria-label="Remove Pokémon"

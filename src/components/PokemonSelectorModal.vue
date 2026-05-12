@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, nextTick, useTemplateRef } from 'vue'
+import { gsap } from 'gsap'
 import { useAllPokemonListQuery } from '../composables/usePokemonQueries'
 import { getPokemonId, getPokemonSpriteUrl } from '../helpers/pokemon-api'
 
@@ -73,6 +74,74 @@ function handleBackdropClick(e: MouseEvent) {
 function handleLetterClick(letter: string) {
   selectedLetter.value = selectedLetter.value === letter ? null : letter
 }
+
+const modalSurface = useTemplateRef<HTMLElement>('modalSurface')
+const hasAnimatedRows = ref(false)
+
+watch(
+  () => props.open,
+  async (isOpen) => {
+    if (!isOpen) {
+      hasAnimatedRows.value = false
+      return
+    }
+
+    await nextTick()
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    const surface = modalSurface.value
+    if (!surface) return
+
+    gsap.from(surface, {
+      y: 36,
+      scale: 0.96,
+      autoAlpha: 0,
+      duration: 0.28,
+      ease: 'power3.out',
+      clearProps: 'transform,opacity,visibility',
+    })
+
+    const controls = surface.querySelectorAll('.modal-control')
+    gsap.from(controls, {
+      y: 10,
+      autoAlpha: 0,
+      duration: 0.18,
+      stagger: 0.03,
+      ease: 'power3.out',
+      delay: 0.06,
+      clearProps: 'transform,opacity,visibility',
+    })
+  },
+)
+
+watch(
+  () => [props.open, isLoading.value] as const,
+  async ([open, loading]) => {
+    if (!open || loading || hasAnimatedRows.value) return
+
+    await nextTick()
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    const surface = modalSurface.value
+    if (!surface) return
+
+    const rows = surface.querySelectorAll('.modal-result-row')
+    const visibleRows = Array.from(rows).slice(0, 8)
+
+    if (visibleRows.length) {
+      gsap.from(visibleRows, {
+        y: 8,
+        autoAlpha: 0,
+        duration: 0.16,
+        stagger: 0.02,
+        ease: 'power2.out',
+        delay: 0.08,
+        clearProps: 'transform,opacity,visibility',
+      })
+      hasAnimatedRows.value = true
+    }
+  },
+)
 </script>
 
 <template>
@@ -91,11 +160,12 @@ function handleLetterClick(letter: string) {
         @click="handleBackdropClick"
       >
         <div
+          ref="modalSurface"
           class="modal-surface bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col overflow-hidden"
           @click.stop
         >
           <div class="p-5 border-b border-gray-100">
-            <div class="flex items-center justify-between mb-4">
+            <div class="modal-control flex items-center justify-between mb-4">
               <h2 class="text-xl font-bold text-gray-900">Choose a Pokémon</h2>
               <button
                 @click="$emit('close')"
@@ -117,7 +187,7 @@ function handleLetterClick(letter: string) {
                 </svg>
               </button>
             </div>
-            <div class="relative">
+            <div class="modal-control relative">
               <svg
                 class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
                 fill="none"
@@ -139,7 +209,7 @@ function handleLetterClick(letter: string) {
                 class="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            <div class="mt-4 flex items-center gap-1 overflow-x-auto pb-1">
+            <div class="modal-control mt-4 flex items-center gap-1 overflow-x-auto pb-1">
               <button
                 class="shrink-0 px-2.5 py-1 rounded-lg text-xs font-bold transition-colors"
                 :class="
@@ -200,7 +270,7 @@ function handleLetterClick(letter: string) {
               <button
                 v-for="pokemon in filteredPokemon"
                 :key="pokemon.name"
-                class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition-colors text-left"
+                class="modal-result-row flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition-colors text-left"
                 @click="handleSelect(pokemon.name, pokemon.url)"
               >
                 <img
