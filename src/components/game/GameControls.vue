@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, useTemplateRef } from 'vue'
+import { gsap } from 'gsap'
 import type { GameStatus } from '../../composables/useWhoIsThatPokemonGame'
 
 const props = defineProps<{
@@ -20,6 +21,17 @@ const emit = defineEmits<{
 
 const triedNames = ref<Set<string>>(new Set())
 const nextButtonRef = ref<HTMLButtonElement | null>(null)
+const successRef = ref<HTMLDivElement | null>(null)
+const incorrectRef = ref<HTMLDivElement | null>(null)
+const hintAreaRef = ref<HTMLDivElement | null>(null)
+
+const REDUCED_MOTION = '(prefers-reduced-motion: reduce)'
+
+function isReducedMotion(): boolean {
+  return typeof window !== 'undefined' && window.matchMedia(REDUCED_MOTION).matches
+}
+
+const buttonRefs = useTemplateRef<HTMLButtonElement[]>('choice-btn')
 
 watch(
   () => props.status,
@@ -29,13 +41,88 @@ watch(
     }
     if (newStatus === 'correct') {
       nextTick(() => nextButtonRef.value?.focus())
+      if (!isReducedMotion()) {
+        animateSuccessEntrance()
+      }
+    }
+    if (newStatus === 'incorrect' && oldStatus !== 'incorrect') {
+      if (!isReducedMotion()) {
+        animateIncorrectEntrance()
+      }
     }
   },
 )
 
+watch(
+  () => props.hintUsed,
+  (used) => {
+    if (used) {
+      if (!isReducedMotion()) {
+        animateHintReveal()
+      }
+    }
+  },
+)
+
+function animateSuccessEntrance() {
+  if (!successRef.value) return
+  gsap.killTweensOf(successRef.value)
+  const tl = gsap.timeline()
+  tl.fromTo(
+    successRef.value,
+    { opacity: 0, y: 12 },
+    { opacity: 1, y: 0, duration: 0.22, ease: 'power2.out' },
+  )
+}
+
+function animateIncorrectEntrance() {
+  if (!incorrectRef.value) return
+  gsap.killTweensOf(incorrectRef.value)
+  gsap.fromTo(
+    incorrectRef.value,
+    { opacity: 0, y: -6 },
+    { opacity: 1, y: 0, duration: 0.18, ease: 'power2.out' },
+  )
+}
+
+function animateHintReveal() {
+  if (!hintAreaRef.value) return
+  gsap.killTweensOf(hintAreaRef.value)
+  gsap.fromTo(
+    hintAreaRef.value,
+    { opacity: 0, y: -4 },
+    { opacity: 1, y: 0, duration: 0.18, ease: 'power2.out' },
+  )
+}
+
+function animateWrongPress(el: HTMLButtonElement) {
+  if (isReducedMotion()) return
+  gsap.killTweensOf(el)
+  gsap.fromTo(
+    el,
+    { scale: 1 },
+    {
+      scale: 0.93,
+      duration: 0.1,
+      ease: 'power2.in',
+      yoyo: true,
+      repeat: 1,
+    },
+  )
+}
+
 function handleSelect(name: string) {
   if (props.status === 'correct') return
+  const isWrong = name !== props.correctName
   triedNames.value.add(name)
+
+  if (isWrong && buttonRefs.value) {
+    const btn = buttonRefs.value.find((b) => b?.textContent?.trim() === name)
+    if (btn) {
+      animateWrongPress(btn)
+    }
+  }
+
   emit('select', name)
 }
 
@@ -67,6 +154,12 @@ function choiceClass(name: string): string {
       <button
         v-for="name in choices"
         :key="name"
+        :ref="(el) => {
+          if (!buttonRefs) return
+          const arr = buttonRefs as unknown as HTMLButtonElement[]
+          const idx = arr.indexOf(el as HTMLButtonElement)
+          if (idx === -1) arr.push(el as HTMLButtonElement)
+        }"
         :disabled="isDisabled(name)"
         class="relative px-4 py-4 rounded-2xl font-black text-lg capitalize transition-all duration-200 border-2 focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2"
         :class="choiceClass(name)"
@@ -76,7 +169,7 @@ function choiceClass(name: string): string {
       </button>
     </div>
 
-    <div v-if="status === 'correct'" class="text-center">
+    <div v-if="status === 'correct'" ref="successRef" class="text-center">
       <p class="text-green-700 font-black text-2xl mb-2">Correct!</p>
       <p class="text-gray-600 font-medium text-sm mb-6">
         You got it in
@@ -92,7 +185,7 @@ function choiceClass(name: string): string {
       </button>
     </div>
 
-    <div v-else-if="status === 'incorrect'" class="text-center">
+    <div v-else-if="status === 'incorrect'" ref="incorrectRef" class="text-center">
       <p class="text-red-600 font-black text-lg mb-2">Not quite!</p>
       <p class="text-gray-500 text-sm mb-4">
         Attempt <span class="font-bold text-gray-700">{{ attempts }}</span>
@@ -101,6 +194,7 @@ function choiceClass(name: string): string {
 
     <div
       v-if="status !== 'correct'"
+      ref="hintAreaRef"
       class="text-center mt-2"
       aria-live="polite"
     >
@@ -114,6 +208,7 @@ function choiceClass(name: string): string {
       </button>
       <p
         v-else
+        ref="hintTextRef"
         class="text-amber-800 font-bold text-sm max-w-xs mx-auto bg-amber-50 rounded-xl px-4 py-3 border border-amber-200"
       >
         {{ currentHint }}

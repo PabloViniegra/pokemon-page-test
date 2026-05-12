@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, nextTick, computed } from 'vue'
+import { gsap } from 'gsap'
 import confetti from 'canvas-confetti'
 import { useWhoIsThatPokemonGame } from '../composables/useWhoIsThatPokemonGame'
 import { useGameStatsStore } from '../stores/gameStats'
@@ -27,7 +28,7 @@ const {
 const stats = useGameStatsStore()
 const { data: allListData } = useAllPokemonListQuery(computed(() => true))
 
-const shakeSilhouette = ref(false)
+const boardRef = ref<HTMLDivElement | null>(null)
 const prefersReducedMotion =
   typeof window !== 'undefined'
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -87,15 +88,38 @@ watch(status, (newStatus, oldStatus) => {
           spread: 70,
           origin: { y: 0.6 },
         })
+        if (boardRef.value) {
+          gsap.killTweensOf(boardRef.value)
+          gsap.fromTo(
+            boardRef.value,
+            { boxShadow: '0 20px 50px rgba(15, 23, 42, 0.08)' },
+            {
+              boxShadow: `0 20px 60px ${primaryTypeColor.value ?? '#000000'}50`,
+              duration: 0.3,
+              ease: 'power2.out',
+              yoyo: true,
+              repeat: 1,
+            },
+          )
+        }
       })
     }
   }
-  if (newStatus === 'incorrect') {
-    stats.recordRound(false, attempts.value)
-    shakeSilhouette.value = true
-    setTimeout(() => {
-      shakeSilhouette.value = false
-    }, 450)
+  if (newStatus === 'incorrect' && oldStatus !== 'incorrect') {
+    if (!prefersReducedMotion && boardRef.value) {
+      gsap.killTweensOf(boardRef.value)
+      gsap.fromTo(
+        boardRef.value,
+        { x: 0 },
+        {
+          x: -6,
+          duration: 0.09,
+          ease: 'power2.in',
+          yoyo: true,
+          repeat: 3,
+        },
+      )
+    }
   }
 })
 
@@ -127,6 +151,7 @@ function handleHint() {
     </div>
 
     <div
+      ref="boardRef"
       class="game-board rounded-3xl border-4 shadow-2xl p-4 sm:p-6 md:p-10 transition-colors duration-500"
       :style="boardStyle"
     >
@@ -169,7 +194,7 @@ function handleHint() {
         <PokemonSilhouette
           :pokemon-id="targetId"
           :revealed="isRevealed"
-          :shake="shakeSilhouette"
+          :shake="status === 'incorrect'"
           :type-color="primaryTypeColor"
         />
 
