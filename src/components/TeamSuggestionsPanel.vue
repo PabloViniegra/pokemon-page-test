@@ -68,7 +68,7 @@ function handlePokemonClick(id: number, name: string) {
           ></div>
         </div>
         <p class="text-sm text-gray-500 font-medium">
-          Analyzing more Pokémon...
+          Analyzing more Pokémon…
         </p>
       </div>
 
@@ -93,6 +93,8 @@ function handlePokemonClick(id: number, name: string) {
             <img
               :src="getPokemonSpriteUrl(p.id)"
               :alt="p.name"
+              width="48"
+              height="48"
               class="w-12 h-12 object-contain shrink-0"
               loading="lazy"
             />

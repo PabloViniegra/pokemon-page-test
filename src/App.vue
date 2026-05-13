@@ -19,6 +19,7 @@ const isDev = import.meta.env.DEV
 
 <template>
   <div class="app-shell min-h-screen text-gray-900 relative overflow-x-hidden">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <nav
       class="app-nav sticky top-0 z-50 backdrop-blur-md border-b border-gray-200"
     >
@@ -103,6 +104,8 @@ const isDev = import.meta.env.DEV
         <img
           :src="solgaleoArtwork"
           alt=""
+          width="18"
+          height="18"
           class="theme-toggle__portrait theme-toggle__portrait--light"
           loading="eager"
           decoding="async"
@@ -110,6 +113,8 @@ const isDev = import.meta.env.DEV
         <img
           :src="lunalaArtwork"
           alt=""
+          width="18"
+          height="18"
           class="theme-toggle__portrait theme-toggle__portrait--dark"
           loading="eager"
           decoding="async"
@@ -118,6 +123,8 @@ const isDev = import.meta.env.DEV
           <img
             :src="theme === 'dark' ? lunalaArtwork : solgaleoArtwork"
             alt=""
+            width="24"
+            height="24"
             class="theme-toggle__thumb-image"
             loading="eager"
             decoding="async"
@@ -137,6 +144,8 @@ const isDev = import.meta.env.DEV
         <img
           :src="solgaleoArtwork"
           alt=""
+          width="18"
+          height="18"
           class="theme-toggle__portrait theme-toggle__portrait--light"
           loading="eager"
           decoding="async"
@@ -144,6 +153,8 @@ const isDev = import.meta.env.DEV
         <img
           :src="lunalaArtwork"
           alt=""
+          width="18"
+          height="18"
           class="theme-toggle__portrait theme-toggle__portrait--dark"
           loading="eager"
           decoding="async"
@@ -152,6 +163,8 @@ const isDev = import.meta.env.DEV
           <img
             :src="theme === 'dark' ? lunalaArtwork : solgaleoArtwork"
             alt=""
+            width="24"
+            height="24"
             class="theme-toggle__thumb-image"
             loading="eager"
             decoding="async"

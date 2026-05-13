@@ -71,17 +71,13 @@ watch(
 </script>
 
 <template>
-  <div
-    class="relative rounded-2xl border-2 transition-all duration-200 overflow-hidden"
-    :class="
-      isEmpty
-        ? 'border-dashed border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100 cursor-pointer'
-        : 'border-gray-200 bg-white hover:shadow-lg hover:-translate-y-1'
-    "
-    @click="isEmpty && $emit('add', index)"
+  <button
+    v-if="isEmpty"
+    type="button"
+    class="relative w-full rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100 cursor-pointer overflow-hidden transition-[background-color,border-color,box-shadow,transform] duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200"
+    @click="$emit('add', index)"
   >
     <div
-      v-if="isEmpty"
       ref="emptyContent"
       class="flex flex-col items-center justify-center py-6 px-4 gap-2 min-h-[140px]"
     >
@@ -106,8 +102,13 @@ watch(
         >Slot {{ index + 1 }}</span
       >
     </div>
+  </button>
 
-    <div v-else ref="filledContent" class="flex flex-col items-center py-4 px-3 gap-2 min-h-35">
+  <div
+    v-else
+    class="relative rounded-2xl border-2 border-gray-200 bg-white overflow-hidden transition-[box-shadow,transform,border-color] duration-200 hover:shadow-lg hover:-translate-y-1"
+  >
+    <div ref="filledContent" class="flex flex-col items-center py-4 px-3 gap-2 min-h-35">
       <button
         class="absolute top-2 right-2 w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 hover:bg-red-100 text-gray-400 hover:text-red-500 transition-colors z-10"
         aria-label="Remove Pokémon"
@@ -128,7 +129,13 @@ watch(
         </svg>
       </button>
 
-      <img :src="imageUrl!" :alt="name!" class="w-16 h-16 object-contain" />
+      <img
+        :src="imageUrl!"
+        :alt="name!"
+        width="64"
+        height="64"
+        class="w-16 h-16 object-contain"
+      />
       <p
         class="text-sm font-bold capitalize text-gray-800 text-center leading-tight"
       >

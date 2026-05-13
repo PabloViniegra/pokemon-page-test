@@ -14,7 +14,7 @@ const availableTypes = Object.keys(TYPE_COLORS)
     <div class="flex items-center gap-3 mb-4">
       <button
         @click="toggleFavoritesOnly"
-        class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold border-2 transition-all"
+        class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold border-2 transition-[background-color,border-color,color,box-shadow]"
         :class="
           showFavoritesOnly
             ? 'bg-red-50 border-red-400 text-red-500 ring-2 ring-red-200'
@@ -44,7 +44,7 @@ const availableTypes = Object.keys(TYPE_COLORS)
         v-for="type in availableTypes"
         :key="type"
         @click="toggleType(type)"
-        class="px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border-2"
+        class="px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-[transform,opacity,background-color,border-color,color,box-shadow] border-2"
         :class="
           selectedTypes.includes(type)
             ? 'ring-2 ring-gray-900 ring-offset-2 scale-105'

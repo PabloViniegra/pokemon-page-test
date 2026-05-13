@@ -161,7 +161,7 @@ function choiceClass(name: string): string {
           if (idx === -1) arr.push(el as HTMLButtonElement)
         }"
         :disabled="isDisabled(name)"
-        class="relative px-4 py-4 rounded-2xl font-black text-lg capitalize transition-all duration-200 border-2 focus:outline-none focus-visible:ring-4 focus-visible:ring-offset-2"
+        class="relative px-4 py-4 rounded-2xl font-black text-lg capitalize transition-[transform,box-shadow,background-color,border-color,color] duration-200 border-2 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-offset-2"
         :class="choiceClass(name)"
         @click="handleSelect(name)"
       >
@@ -179,7 +179,7 @@ function choiceClass(name: string): string {
       <button
         ref="nextButtonRef"
         @click="emit('next')"
-        class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300"
+        class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-[transform,box-shadow,background-color] active:scale-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300"
       >
         Next Pokémon
       </button>
@@ -202,7 +202,7 @@ function choiceClass(name: string): string {
         v-if="!hintUsed"
         @click="emit('hint')"
         :disabled="isSpeciesLoading"
-        class="px-6 py-2 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all active:scale-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300"
+        class="px-6 py-2 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-[transform,box-shadow,background-color] active:scale-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-300"
       >
         Give a hint
       </button>

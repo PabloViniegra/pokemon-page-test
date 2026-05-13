@@ -281,7 +281,7 @@ onBeforeRouteLeave(() => {
 </script>
 
 <template>
-  <main class="app-page relative">
+  <main id="main-content" class="app-page relative">
     <header
       ref="heroHeader"
       class="pokemon-page-header pokemon-page-header--home relative overflow-hidden"
@@ -300,7 +300,10 @@ onBeforeRouteLeave(() => {
           <img
             :src="pokemonLogo"
             alt="Pokémon"
+            width="270"
+            height="99"
             class="pokemon-logo-img mx-auto w-44 sm:w-56 md:w-72"
+            fetchpriority="high"
           />
         </div>
         <h1
@@ -316,7 +319,7 @@ onBeforeRouteLeave(() => {
           class="home-hero-copy text-white/90 text-lg max-w-xl mx-auto font-medium"
           style="text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2)"
         >
-          Explore all {{ infiniteData?.pages[0]?.count || '...' }} Pokémon
+          Explore all {{ infiniteData?.pages[0]?.count || '…' }} Pokémon
           across every generation
         </p>
       </div>
@@ -363,12 +366,12 @@ onBeforeRouteLeave(() => {
       </div>
 
       <transition
-        enter-active-class="transition-all duration-300 ease-out"
-        enter-from-class="opacity-0 -translate-y-2 max-h-0"
-        enter-to-class="opacity-100 translate-y-0 max-h-96"
-        leave-active-class="transition-all duration-200 ease-in"
-        leave-from-class="opacity-100 translate-y-0 max-h-96"
-        leave-to-class="opacity-0 -translate-y-2 max-h-0"
+        enter-active-class="transition-[opacity,transform] duration-300 ease-out"
+        enter-from-class="opacity-0 -translate-y-2"
+        enter-to-class="opacity-100 translate-y-0"
+        leave-active-class="transition-[opacity,transform] duration-200 ease-in"
+        leave-from-class="opacity-100 translate-y-0"
+        leave-to-class="opacity-0 -translate-y-2"
       >
         <div v-show="showFilters" class="overflow-hidden">
           <div class="max-w-7xl mx-auto pt-4 pb-2">
@@ -392,7 +395,7 @@ onBeforeRouteLeave(() => {
           ></div>
         </div>
         <p class="text-gray-500 font-semibold animate-pulse">
-          Loading Pokémon...
+          Loading Pokémon…
         </p>
       </div>
 
@@ -437,7 +440,7 @@ onBeforeRouteLeave(() => {
               ></div>
             </div>
             <p class="text-gray-400 font-medium text-sm animate-pulse">
-              Loading more...
+              Loading more…
             </p>
           </div>
         </div>

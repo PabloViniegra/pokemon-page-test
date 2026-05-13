@@ -116,7 +116,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <main class="app-page min-h-screen">
+  <main id="main-content" class="app-page min-h-screen">
     <div
       v-if="isLoading"
       class="flex flex-col items-center justify-center min-h-screen gap-6"
@@ -134,7 +134,7 @@ onUnmounted(() => {
         ></div>
       </div>
       <p class="text-gray-500 font-semibold animate-pulse">
-        Loading Pokémon data...
+        Loading Pokémon data…
       </p>
     </div>
 

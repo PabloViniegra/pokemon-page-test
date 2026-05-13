@@ -137,7 +137,7 @@ function handleHint() {
 </script>
 
 <template>
-  <div class="app-page max-w-2xl mx-auto px-4 py-6 sm:py-10">
+  <main id="main-content" class="app-page max-w-2xl mx-auto px-4 py-6 sm:py-10">
     <div class="text-center mb-6 sm:mb-10">
       <h1
         class="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-gray-900 mb-2"
@@ -163,7 +163,7 @@ function handleHint() {
           ></div>
         </div>
         <p class="text-gray-600 font-bold text-lg animate-pulse">
-          Preparing next challenger...
+          Preparing next challenger…
         </p>
       </div>
 
@@ -227,5 +227,5 @@ function handleHint() {
         <span class="text-gray-900 text-lg">{{ accuracy }}%</span>
       </div>
     </div>
-  </div>
+  </main>
 </template>

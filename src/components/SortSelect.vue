@@ -5,8 +5,9 @@ const model = defineModel<string>({ default: 'id-asc' })
 <template>
   <select
     v-model="model"
+    name="sort"
     aria-label="Sort Pokémon"
-    class="w-full bg-gray-100 border-2 border-gray-200 rounded-2xl px-5 py-3 text-gray-900 focus:outline-none focus:border-blue-500 cursor-pointer font-semibold md:w-auto"
+    class="w-full bg-gray-100 border-2 border-gray-200 rounded-2xl px-5 py-3 text-gray-900 focus-visible:outline-none focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-200 cursor-pointer font-semibold md:w-auto"
   >
     <option value="id-asc">ID ↑</option>
     <option value="id-desc">ID ↓</option>

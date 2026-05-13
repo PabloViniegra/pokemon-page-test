@@ -1,15 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, RouterLinkStub } from '@vue/test-utils'
 import EvolutionTree from '../EvolutionTree.vue'
 import type { EvolutionNode } from '../../types/pokemon'
-
-const mockPush = vi.fn()
-
-vi.mock('vue-router', () => ({
-  useRouter: () => ({
-    push: mockPush,
-  }),
-}))
 
 function createNode(
   speciesName: string,
@@ -27,6 +19,17 @@ function createNode(
   }
 }
 
+function mountTree(props: Record<string, unknown>) {
+  return mount(EvolutionTree, {
+    props,
+    global: {
+      stubs: {
+        RouterLink: RouterLinkStub,
+      },
+    },
+  })
+}
+
 describe('EvolutionTree', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -34,9 +37,7 @@ describe('EvolutionTree', () => {
 
   it('renders a single pokemon with no evolutions', () => {
     const node = createNode('mew', 151)
-    const wrapper = mount(EvolutionTree, {
-      props: { node },
-    })
+    const wrapper = mountTree({ node })
     expect(wrapper.text()).toContain('mew')
     expect(wrapper.find('img').attributes('src')).toBe('https://example.com/151.png')
     expect(wrapper.findAll('.evo-stage')).toHaveLength(1)
@@ -52,9 +53,7 @@ describe('EvolutionTree', () => {
         ]),
       ]),
     ])
-    const wrapper = mount(EvolutionTree, {
-      props: { node },
-    })
+    const wrapper = mountTree({ node })
 
     expect(wrapper.text()).toContain('bulbasaur')
     expect(wrapper.text()).toContain('ivysaur')
@@ -77,9 +76,7 @@ describe('EvolutionTree', () => {
         { trigger: { name: 'use-item' }, item: { name: 'fire-stone' } } as any,
       ]),
     ])
-    const wrapper = mount(EvolutionTree, {
-      props: { node },
-    })
+    const wrapper = mountTree({ node })
 
     expect(wrapper.text()).toContain('eevee')
     expect(wrapper.text()).toContain('vaporeon')
@@ -104,9 +101,7 @@ describe('EvolutionTree', () => {
       createNode('sylveon', 700),
     ]
     const node = createNode('eevee', 133, [], children)
-    const wrapper = mount(EvolutionTree, {
-      props: { node },
-    })
+    const wrapper = mountTree({ node })
 
     const entries = wrapper.findAll('.evo-entry')
     expect(entries).toHaveLength(9)
@@ -114,16 +109,18 @@ describe('EvolutionTree', () => {
     expect(wrapper.text()).toContain('vaporeon')
   })
 
-  it('navigates to pokemon detail on click', async () => {
+  it('renders pokemon detail link on each card', async () => {
     const node = createNode('pikachu', 25)
-    const wrapper = mount(EvolutionTree, {
-      props: { node },
+    const wrapper = mountTree({ node })
+
+    const link = wrapper.getComponent(RouterLinkStub)
+    expect(link.props('to')).toEqual({
+      name: 'pokemon-detail',
+      params: { id: 25 },
     })
-    await wrapper.find('.evo-entry__card').trigger('click')
-    expect(mockPush).toHaveBeenCalledWith('/pokemon/25')
   })
 
-  it('navigates to clicked evolved pokemon instead of current pokemon', async () => {
+  it('renders link to the clicked evolved pokemon instead of current pokemon', async () => {
     const node = createNode('charmander', 4, [], [
       createNode('charmeleon', 5, [
         { trigger: { name: 'level-up' }, min_level: 16 } as any,
@@ -134,14 +131,13 @@ describe('EvolutionTree', () => {
       ]),
     ])
 
-    const wrapper = mount(EvolutionTree, {
-      props: { node, currentPokemonId: 4 },
+    const wrapper = mountTree({ node, currentPokemonId: 4 })
+
+    const links = wrapper.findAllComponents(RouterLinkStub)
+    expect(links[1]?.props('to')).toEqual({
+      name: 'pokemon-detail',
+      params: { id: 5 },
     })
-
-    const cards = wrapper.findAll('.evo-entry__card')
-    await cards[1].trigger('click')
-
-    expect(mockPush).toHaveBeenLastCalledWith('/pokemon/5')
   })
 
   it('applies accent color to the tree', () => {
@@ -150,18 +146,14 @@ describe('EvolutionTree', () => {
         { trigger: { name: 'level-up' }, min_level: 16 } as any,
       ]),
     ])
-    const wrapper = mount(EvolutionTree, {
-      props: { node, accentColor: '#EE8130' },
-    })
+    const wrapper = mountTree({ node, accentColor: '#EE8130' })
     const tree = wrapper.find('.evo-tree')
     expect(tree.attributes('style')).toContain('#EE8130')
   })
 
   it('does not show condition for the root pokemon', () => {
     const node = createNode('mew', 151)
-    const wrapper = mount(EvolutionTree, {
-      props: { node },
-    })
+    const wrapper = mountTree({ node })
     expect(wrapper.find('.evo-condition').exists()).toBe(false)
   })
 
@@ -171,9 +163,7 @@ describe('EvolutionTree', () => {
         { trigger: { name: 'level-up' }, min_level: 16 } as any,
       ]),
     ])
-    const wrapper = mount(EvolutionTree, {
-      props: { node },
-    })
+    const wrapper = mountTree({ node })
     const connectors = wrapper.findAll('.evo-connector')
     expect(connectors).toHaveLength(1)
     const branches = wrapper.findAll('.evo-branch')
@@ -182,9 +172,7 @@ describe('EvolutionTree', () => {
 
   it('renders no connectors for single-stage chain', () => {
     const node = createNode('mew', 151)
-    const wrapper = mount(EvolutionTree, {
-      props: { node },
-    })
+    const wrapper = mountTree({ node })
     expect(wrapper.findAll('.evo-connector')).toHaveLength(0)
   })
 
@@ -201,9 +189,7 @@ describe('EvolutionTree', () => {
         ]),
       ]),
     ])
-    const wrapper = mount(EvolutionTree, {
-      props: { node },
-    })
+    const wrapper = mountTree({ node })
 
     expect(wrapper.text()).toContain('poliwrath')
     expect(wrapper.text()).toContain('politoed')
@@ -212,9 +198,7 @@ describe('EvolutionTree', () => {
 
   it('has accessible labels on cards', () => {
     const node = createNode('mew', 151)
-    const wrapper = mount(EvolutionTree, {
-      props: { node },
-    })
+    const wrapper = mountTree({ node })
     expect(wrapper.find('.evo-entry__card').attributes('aria-label')).toBe('View mew details')
   })
 
@@ -224,9 +208,7 @@ describe('EvolutionTree', () => {
         { trigger: { name: 'level-up' }, min_level: 16 } as any,
       ]),
     ])
-    const wrapper = mount(EvolutionTree, {
-      props: { node, currentPokemonId: 2 },
-    })
+    const wrapper = mountTree({ node, currentPokemonId: 2 })
     const currentCard = wrapper.find('.evo-entry__card--current')
     expect(currentCard.exists()).toBe(true)
     expect(currentCard.text()).toContain('ivysaur')
@@ -239,9 +221,7 @@ describe('EvolutionTree', () => {
         { trigger: { name: 'level-up' }, min_level: 16 } as any,
       ]),
     ])
-    const wrapper = mount(EvolutionTree, {
-      props: { node, currentPokemonId: 2 },
-    })
+    const wrapper = mountTree({ node, currentPokemonId: 2 })
     const cards = wrapper.findAll('.evo-entry__card')
     expect(cards).toHaveLength(2)
     const highlighted = wrapper.findAll('.evo-entry__card--current')

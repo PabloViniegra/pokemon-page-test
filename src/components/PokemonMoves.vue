@@ -122,7 +122,7 @@ watch(showAllMoves, async (expanded) => {
         <button
           v-if="moves.length > INITIAL_SLICE"
           @click="showAllMoves = !showAllMoves"
-          class="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
         >
           <span v-if="isExpanded">Show fewer</span>
           <span v-else>Show all ({{ moves.length }})</span>

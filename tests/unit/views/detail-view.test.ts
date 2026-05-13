@@ -43,7 +43,7 @@ describe('DetailView', async () => {
   it('renders loading and error states', async () => {
     isLoadingRef.value = true
     const loadingWrapper = mount(DetailView, { props: { id: '25' } })
-    expect(loadingWrapper.text()).toContain('Loading Pokémon data...')
+    expect(loadingWrapper.text()).toContain('Loading Pokémon data…')
 
     isLoadingRef.value = false
     isErrorRef.value = true

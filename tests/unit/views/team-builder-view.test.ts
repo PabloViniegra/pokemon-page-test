@@ -14,10 +14,13 @@ const addMember = vi.fn((member: { id: number; name: string }) => {
 })
 const prefetchQuery = vi.fn()
 const back = vi.fn()
+const replace = vi.fn()
 const getPokemonDetail = vi.fn()
+const routeQuery = ref<Record<string, string>>({})
 
 vi.mock('vue-router', () => ({
-  useRouter: () => ({ back }),
+  useRouter: () => ({ back, replace }),
+  useRoute: () => ({ query: routeQuery.value }),
 }))
 
 vi.mock('@tanstack/vue-query', () => ({
@@ -62,12 +65,15 @@ describe('TeamBuilderView', async () => {
 
   beforeEach(() => {
     team.value = [{ id: 25, name: 'pikachu' }]
+    routeQuery.value = {}
     clearTeam.mockClear()
     removeMember.mockClear()
     addMember.mockClear()
     prefetchQuery.mockClear()
     back.mockClear()
+    replace.mockClear()
     getPokemonDetail.mockReset()
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
   })
 
   it('renders team info and handles team management actions', async () => {

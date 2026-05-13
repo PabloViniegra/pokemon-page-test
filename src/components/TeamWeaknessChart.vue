@@ -282,7 +282,7 @@ function onAlertLeave(el: Element, done: () => void) {
               class="flex-1 h-8 bg-gray-100 rounded-xl overflow-hidden relative"
             >
               <div
-                class="matchup-bar h-full rounded-xl transition-all duration-500 flex items-center px-2"
+                class="matchup-bar h-full rounded-xl flex items-center px-2"
                 :class="getBarBgClass(item.averageEffectiveness)"
                 :style="{
                   width: `${Math.min((item.averageEffectiveness / maxAvg) * 100, 100)}%`,

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, useTemplateRef } from 'vue'
+import { ref, computed, useTemplateRef, watch } from 'vue'
 import { gsap } from 'gsap'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useQueryClient } from '@tanstack/vue-query'
 import { useTeamStore } from '../stores/team'
 import { getPokemonDetail } from '../helpers/pokemon-api'
@@ -14,6 +14,9 @@ import PokemonSelectorModal from '../components/PokemonSelectorModal.vue'
 import TeamWeaknessChart from '../components/TeamWeaknessChart.vue'
 import TeamSuggestionsPanel from '../components/TeamSuggestionsPanel.vue'
 
+type ActiveTab = 'analysis' | 'suggestions'
+
+const route = useRoute()
 const router = useRouter()
 const teamStore = useTeamStore()
 const queryClient = useQueryClient()
@@ -28,7 +31,10 @@ const {
 const activeSlotIndex = ref<number | null>(null)
 const showModal = ref(false)
 
-const activeTab = ref<'analysis' | 'suggestions'>('analysis')
+const activeTab = ref<ActiveTab>('analysis')
+
+let syncingTabFromUrl = false
+let syncingTabToUrl = false
 
 const tabs = [
   {
@@ -56,6 +62,40 @@ const slots = computed(() =>
       : { id: null, name: null, index: i }
   }),
 )
+
+function readTabFromUrl() {
+  syncingTabFromUrl = true
+  activeTab.value = route.query.tab === 'suggestions' ? 'suggestions' : 'analysis'
+  syncingTabFromUrl = false
+}
+
+function writeTabToUrl(tab: ActiveTab) {
+  if (syncingTabFromUrl) return
+
+  syncingTabToUrl = true
+  const query = { ...route.query }
+
+  if (tab === 'analysis') {
+    delete query.tab
+  } else {
+    query.tab = tab
+  }
+
+  void router.replace({ query })
+  syncingTabToUrl = false
+}
+
+watch(
+  () => route.query.tab,
+  () => {
+    if (syncingTabToUrl) return
+    readTabFromUrl()
+  },
+)
+
+watch(activeTab, writeTabToUrl)
+
+readTabFromUrl()
 
 function openSelector(index: number) {
   activeSlotIndex.value = index
@@ -89,6 +129,15 @@ function handleSuggestionSelect(id: number, name: string) {
     queryFn: () => getPokemonDetail(id),
     staleTime: 1000 * 60 * 60 * 24,
   })
+}
+
+function setActiveTab(tab: ActiveTab) {
+  activeTab.value = tab
+}
+
+function handleClearTeam() {
+  if (!window.confirm('Clear all 6 team slots?')) return
+  teamStore.clearTeam()
 }
 
 useGsapContext(pageHeader, ({ q }) => {
@@ -139,7 +188,7 @@ useGsapContext(slotsGrid, ({ q }) => {
 </script>
 
 <template>
-  <main class="app-page min-h-screen">
+  <main id="main-content" class="app-page min-h-screen">
     <header ref="pageHeader" class="pokemon-page-header pokemon-page-header--team relative overflow-hidden">
       <div
         class="header-pattern absolute inset-0 opacity-10"
@@ -201,7 +250,7 @@ useGsapContext(slotsGrid, ({ q }) => {
           </h2>
           <button
             v-if="teamStore.hasMembers"
-            @click="teamStore.clearTeam()"
+            @click="handleClearTeam"
             class="text-sm font-semibold text-red-500 hover:text-red-600 transition-colors"
           >
             Clear all
@@ -272,14 +321,14 @@ useGsapContext(slotsGrid, ({ q }) => {
               <button
                 v-for="tab in tabs"
                 :key="tab.key"
-                class="group relative overflow-hidden rounded-[1.6rem] border px-4 py-4 text-left transition-all duration-200 sm:px-5 sm:py-4"
+                class="group relative overflow-hidden rounded-[1.6rem] border px-4 py-4 text-left transition-[transform,background-color,border-color,color,box-shadow] duration-200 sm:px-5 sm:py-4"
                 :class="
                   activeTab === tab.key
                     ? 'border-white/80 bg-[linear-gradient(135deg,#4f66f8_0%,#3659d8_52%,#243aa6_100%)] text-white shadow-[0_18px_34px_rgba(59,76,202,0.34)]'
                     : 'border-white/70 bg-white/78 text-gray-700 shadow-[0_12px_28px_rgba(15,23,42,0.08)] hover:-translate-y-0.5 hover:border-blue-200 hover:bg-white dark:border-[rgba(90,110,154,0.28)] dark:bg-[rgba(10,16,29,0.82)] dark:text-[var(--app-text-muted)] dark:shadow-[0_12px_28px_rgba(0,0,0,0.25)] dark:hover:border-[rgba(90,110,154,0.40)] dark:hover:bg-[rgba(10,16,29,0.95)]'
                 "
                 :aria-pressed="activeTab === tab.key"
-                @click="activeTab = tab.key"
+                @click="setActiveTab(tab.key)"
               >
                 <div
                   v-if="activeTab === tab.key"

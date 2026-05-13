@@ -2,7 +2,6 @@
 import { gsap } from 'gsap'
 import { computed } from 'vue'
 import { useTemplateRef } from 'vue'
-import { useRouter } from 'vue-router'
 import { useGsapContext } from '../composables/useGsapContext'
 import type { EvolutionNode, EvolutionStage } from '../types/pokemon'
 import { computeEvolutionStages } from '../helpers/pokemon-api'
@@ -17,8 +16,6 @@ const props = withDefaults(defineProps<Props>(), {
   accentColor: '#A8A77A',
   currentPokemonId: 0,
 })
-
-const router = useRouter()
 const treeRef = useTemplateRef<HTMLElement>('treeRef')
 
 const stages = computed(() => computeEvolutionStages(props.node))
@@ -47,10 +44,6 @@ const groupedStages = computed<GroupedStage[]>(() => {
     return { depth: stage.depth, groups }
   })
 })
-
-function navigateToPokemon(id: number) {
-  router.push(`/pokemon/${id}`)
-}
 
 useGsapContext(treeRef, ({ root, q }) => {
   gsap.timeline({
@@ -136,19 +129,21 @@ useGsapContext(treeRef, ({ root, q }) => {
           :key="group.parentId"
         >
           <div v-for="entry in group.entries" :key="entry.node.speciesId" class="evo-entry">
-            <button
+            <router-link
               class="evo-entry__card"
+              :to="{ name: 'pokemon-detail', params: { id: entry.node.speciesId } }"
               :class="{
                 'evo-entry__card--current':
                   entry.node.speciesId === currentPokemonId,
               }"
               :aria-label="`View ${entry.node.speciesName} details`"
-              @click="navigateToPokemon(entry.node.speciesId)"
             >
               <div class="evo-entry__avatar">
                 <img
                   :src="entry.node.imageUrl"
                   :alt="entry.node.speciesName"
+                  width="56"
+                  height="56"
                   class="evo-entry__img"
                   loading="lazy"
                 />
@@ -162,7 +157,7 @@ useGsapContext(treeRef, ({ root, q }) => {
               >
                 Current
               </span>
-            </button>
+            </router-link>
           </div>
           <div
             v-if="gi < stage.groups.length - 1"

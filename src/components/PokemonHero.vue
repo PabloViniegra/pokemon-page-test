@@ -310,13 +310,15 @@ watch(
               ref="artworkImageRef"
               :src="mainImage"
               :alt="pokemon.name"
+              width="384"
+              height="384"
               class="hero-artwork-image relative w-full h-full object-contain drop-shadow-xl"
             />
           </div>
 
           <button
             @click="$emit('update:showShiny', !showShiny)"
-            class="hero-toggle mt-6 px-5 py-2 rounded-full border-2 border-gray-200 bg-white hover:bg-gray-100 transition-all font-bold text-sm flex items-center gap-2 shadow-sm"
+            class="hero-toggle mt-6 px-5 py-2 rounded-full border-2 border-gray-200 bg-white hover:bg-gray-100 transition-[background-color,border-color,color,box-shadow] font-bold text-sm flex items-center gap-2 shadow-sm"
             :class="{
               'border-yellow-400 text-yellow-600 bg-yellow-50': showShiny,
             }"
@@ -340,7 +342,7 @@ watch(
               </h1>
               <button
                 @click="favoritesStore.toggleFavorite(pokemon.id)"
-                class="hero-favorite fav-hero-btn relative isolate overflow-visible flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full border-2 bg-white transition-all duration-300 shadow-sm hover:shadow-md mt-1"
+                class="hero-favorite fav-hero-btn relative isolate overflow-visible flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full border-2 bg-white transition-[transform,box-shadow,border-color,color,background-color] duration-300 shadow-sm hover:shadow-md mt-1"
                 :class="
                   isFavorited
                     ? 'border-red-300 text-red-500 bg-red-50/80 hover:border-red-400'

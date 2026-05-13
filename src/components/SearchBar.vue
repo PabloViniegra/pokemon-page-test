@@ -6,9 +6,12 @@ const model = defineModel<string>({ default: '' })
   <div class="relative flex-1 w-full">
     <input
       v-model="model"
-      type="text"
-      placeholder="Search Pokémon..."
-      class="w-full bg-gray-100 border-2 border-gray-200 rounded-2xl px-5 py-3 pl-12 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all font-semibold"
+      type="search"
+      name="q"
+      aria-label="Search Pokémon"
+      autocomplete="off"
+      placeholder="Search Pokémon…"
+      class="w-full bg-gray-100 border-2 border-gray-200 rounded-2xl px-5 py-3 pl-12 text-gray-900 placeholder-gray-400 focus-visible:outline-none focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-200 transition-[border-color,box-shadow] font-semibold"
     />
     <svg
       class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
@@ -27,6 +30,7 @@ const model = defineModel<string>({ default: '' })
       v-if="model"
       type="button"
       class="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
+      aria-label="Clear search"
       @click="model = ''"
     >
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

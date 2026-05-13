@@ -51,12 +51,22 @@ watch(selectedLetter, (letter) => {
 
 const searchInputRef = ref<HTMLInputElement | null>(null)
 
+function shouldAutofocusSearch() {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return false
+  }
+
+  return window.matchMedia('(hover: hover) and (pointer: fine)').matches
+}
+
 watch(
   () => props.open,
   (isOpen) => {
     if (isOpen) {
       searchTerm.value = ''
-      setTimeout(() => searchInputRef.value?.focus(), 50)
+      if (shouldAutofocusSearch()) {
+        setTimeout(() => searchInputRef.value?.focus(), 50)
+      }
     }
   },
 )
@@ -161,7 +171,7 @@ watch(
       >
         <div
           ref="modalSurface"
-          class="modal-surface bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col overflow-hidden"
+          class="modal-surface bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col overflow-hidden overscroll-contain"
           @click.stop
         >
           <div class="p-5 border-b border-gray-100">
@@ -204,9 +214,12 @@ watch(
               <input
                 ref="searchInputRef"
                 v-model="searchTerm"
-                type="text"
-                placeholder="Search Pokémon..."
-                class="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                type="search"
+                name="pokemon-search"
+                aria-label="Search Pokémon"
+                autocomplete="off"
+                placeholder="Search Pokémon…"
+                class="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-2xl text-gray-900 placeholder-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
               />
             </div>
             <div class="modal-control mt-4 flex items-center gap-1 overflow-x-auto pb-1">
@@ -252,7 +265,7 @@ watch(
                 ></div>
               </div>
               <p class="text-gray-500 font-medium text-sm">
-                Loading Pokémon...
+                Loading Pokémon…
               </p>
             </div>
 
@@ -271,11 +284,14 @@ watch(
                 v-for="pokemon in filteredPokemon"
                 :key="pokemon.name"
                 class="modal-result-row flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition-colors text-left"
+                style="content-visibility: auto; contain-intrinsic-size: 56px;"
                 @click="handleSelect(pokemon.name, pokemon.url)"
               >
                 <img
                   :src="getPokemonSpriteUrl(getPokemonId(pokemon.url))"
                   :alt="pokemon.name"
+                  width="40"
+                  height="40"
                   class="w-10 h-10 object-contain"
                   loading="lazy"
                 />

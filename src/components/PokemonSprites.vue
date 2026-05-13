@@ -57,7 +57,10 @@ useGsapContext(sectionRef, ({ root, q }) => {
           <img
             :src="sprites.front_default"
             :alt="pokemonName + ' front'"
+            width="96"
+            height="96"
             class="w-24 h-24 object-contain pixelated"
+            loading="lazy"
           />
         </div>
         <span class="text-gray-600 text-xs font-medium">Front</span>
@@ -70,7 +73,10 @@ useGsapContext(sectionRef, ({ root, q }) => {
           <img
             :src="sprites.back_default"
             :alt="pokemonName + ' back'"
+            width="96"
+            height="96"
             class="w-24 h-24 object-contain pixelated"
+            loading="lazy"
           />
         </div>
         <span class="text-gray-600 text-xs font-medium">Back</span>
@@ -83,7 +89,10 @@ useGsapContext(sectionRef, ({ root, q }) => {
           <img
             :src="sprites.front_shiny"
             :alt="pokemonName + ' front shiny'"
+            width="96"
+            height="96"
             class="w-24 h-24 object-contain pixelated"
+            loading="lazy"
           />
         </div>
         <span class="text-gray-600 text-xs font-medium">Front Shiny</span>
@@ -96,7 +105,10 @@ useGsapContext(sectionRef, ({ root, q }) => {
           <img
             :src="sprites.back_shiny"
             :alt="pokemonName + ' back shiny'"
+            width="96"
+            height="96"
             class="w-24 h-24 object-contain pixelated"
+            loading="lazy"
           />
         </div>
         <span class="text-gray-600 text-xs font-medium">Back Shiny</span>

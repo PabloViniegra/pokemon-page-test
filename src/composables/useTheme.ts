@@ -16,6 +16,10 @@ type DocumentWithViewTransition = Document & {
 
 const THEME_STORAGE_KEY = 'pokemon-theme-mode'
 const DEFAULT_THEME: ThemeMode = 'light'
+const THEME_COLORS: Record<ThemeMode, string> = {
+  light: '#fffdf5',
+  dark: '#060912',
+}
 
 const theme = ref<ThemeMode>(DEFAULT_THEME)
 
@@ -32,6 +36,11 @@ function applyTheme(nextTheme: ThemeMode, persist = true) {
   if (typeof document !== 'undefined') {
     document.documentElement.classList.toggle('dark', nextTheme === 'dark')
     document.documentElement.style.colorScheme = nextTheme
+
+    const themeColorMeta = document.querySelector<HTMLMetaElement>(
+      'meta[name="theme-color"]',
+    )
+    themeColorMeta?.setAttribute('content', THEME_COLORS[nextTheme])
   }
 
   if (persist && typeof window !== 'undefined') {

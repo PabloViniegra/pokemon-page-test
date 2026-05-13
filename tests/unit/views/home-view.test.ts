@@ -148,8 +148,8 @@ describe('HomeView', async () => {
 
     const wrapper = mount(HomeView, { global: { stubs } })
 
-    expect(wrapper.text()).toContain('Loading Pokémon...')
-    expect(wrapper.get('input').attributes('placeholder')).toBe('Search Pokémon...')
+    expect(wrapper.text()).toContain('Loading Pokémon…')
+    expect(wrapper.get('input').attributes('placeholder')).toBe('Search Pokémon…')
     expect(wrapper.get('select').exists()).toBe(true)
     mocks.beforeLeave?.()
     expect(sessionStorage.getItem('pokedex-scroll-y')).toBe('250')

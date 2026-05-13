@@ -47,15 +47,16 @@ function handleSummaryEnter(event: MouseEvent) {
 <template>
   <router-link
     :to="{ name: 'pokemon-detail', params: { id: name } }"
-    class="pokemon-card group relative bg-white rounded-3xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border-2 border-gray-100 block text-inherit no-underline"
+    class="pokemon-card group relative bg-white rounded-3xl overflow-hidden cursor-pointer transition-[transform,box-shadow,border-color] duration-300 hover:shadow-xl hover:-translate-y-2 border-2 border-gray-100 block text-inherit no-underline"
     :class="accentColor ? 'hover:border-gray-200' : 'hover:border-gray-200'"
+    style="content-visibility: auto; contain-intrinsic-size: 220px;"
     @click="emit('select', name)"
     @mouseenter="handleSummaryEnter"
     @mouseleave="emit('summaryLeave')"
   >
     <div
       v-if="accentColor"
-      class="absolute top-0 left-0 right-0 h-1.5 transition-all duration-300"
+      class="absolute top-0 left-0 right-0 h-1.5 transition-colors duration-300"
       :style="{ backgroundColor: accentColor }"
     ></div>
 
@@ -65,6 +66,8 @@ function handleSummaryEnter(event: MouseEvent) {
       <img
         :src="imageUrl"
         :alt="`${name} Pokémon`"
+        width="96"
+        height="96"
         class="w-24 h-24 object-contain drop-shadow-md transition-transform duration-300 group-hover:scale-110"
         :loading="parseInt(paddedId) <= 20 ? 'eager' : 'lazy'"
         decoding="async"
@@ -74,7 +77,7 @@ function handleSummaryEnter(event: MouseEvent) {
       </span>
       <button
         @click.stop="favoritesStore.toggleFavorite(parseInt(paddedId))"
-        class="fav-btn absolute top-3 left-3 w-9 h-9 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm shadow-md transition-all duration-200 hover:scale-115 active:scale-90"
+        class="fav-btn absolute top-3 left-3 w-9 h-9 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm shadow-md transition-[transform,box-shadow,color,background-color] duration-200 hover:scale-115 active:scale-90"
         :class="
           isFavorited ? 'fav-btn--active' : 'text-gray-300 hover:text-red-400'
         "
@@ -109,7 +112,10 @@ function handleSummaryEnter(event: MouseEvent) {
 
 <style scoped>
 .fav-heart {
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition:
+    fill 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+    stroke 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .fav-heart--active {

@@ -26,7 +26,7 @@ describe('PokemonSelectorModal', async () => {
       props: { open: true, excludeIds: [] },
       global: { stubs: { Teleport: true, Transition: false } },
     })
-    expect(loadingWrapper.text()).toContain('Loading Pokémon...')
+    expect(loadingWrapper.text()).toContain('Loading Pokémon…')
 
     loadingRef.value = false
     dataRef.value = { results: [] }
@@ -73,6 +73,18 @@ describe('PokemonSelectorModal', async () => {
       results: [{ name: 'pikachu', url: 'https://pokeapi.co/api/v2/pokemon/25/' }],
     }
     const focus = vi.spyOn(HTMLInputElement.prototype, 'focus').mockImplementation(() => {})
+    const matchMedia = vi
+      .spyOn(window, 'matchMedia')
+      .mockImplementation((query: string) => ({
+        matches: query === '(hover: hover) and (pointer: fine)',
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      }) as unknown as MediaQueryList)
 
     const wrapper = mount(PokemonSelectorModal, {
       props: { open: false, excludeIds: [] },
@@ -87,6 +99,8 @@ describe('PokemonSelectorModal', async () => {
 
     await wrapper.setProps({ open: false })
     expect(focus).toHaveBeenCalledTimes(1)
+
+    matchMedia.mockRestore()
   })
 
   it('closes when the backdrop is clicked but not when inner content is clicked', async () => {
