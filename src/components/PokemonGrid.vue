@@ -1,9 +1,15 @@
 <script setup lang="ts">
 import { gsap } from 'gsap'
+import { computed } from 'vue'
 import type { PokemonCardDisplay } from '../types/pokemon'
 import { useTemplateRef } from 'vue'
 import { useGsapContext } from '../composables/useGsapContext'
+import {
+  usePokemonHoverSummary,
+  type PokemonHoverSummaryTrigger,
+} from '../composables/usePokemonHoverSummary'
 import PokemonCard from './PokemonCard.vue'
+import PokemonHoverTooltip from './PokemonHoverTooltip.vue'
 
 const props = defineProps<{
   pokemons: PokemonCardDisplay[]
@@ -16,6 +22,20 @@ defineEmits<{
 }>()
 
 const gridRoot = useTemplateRef<HTMLElement>('gridRoot')
+const {
+  summaryPokemon,
+  summaryAccentColor,
+  summaryPosition,
+  isSummaryVisible,
+  showSummary,
+  hideSummary,
+} = usePokemonHoverSummary()
+
+const tooltipPosition = computed(() => summaryPosition.value)
+
+function handleSummaryEnter(payload: PokemonHoverSummaryTrigger) {
+  showSummary(payload)
+}
 
 useGsapContext(gridRoot, ({ q }) => {
   if (!props.animate) return
@@ -52,6 +72,15 @@ useGsapContext(gridRoot, ({ q }) => {
       class="pokemon-grid-card"
       @select="$emit('select', $event)"
       @hover="$emit('hover', $event)"
+      @summary-enter="handleSummaryEnter"
+      @summary-leave="hideSummary"
     />
   </div>
+
+  <PokemonHoverTooltip
+    :pokemon="summaryPokemon"
+    :accent-color="summaryAccentColor"
+    :position="tooltipPosition"
+    :visible="isSummaryVisible"
+  />
 </template>

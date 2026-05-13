@@ -6,7 +6,7 @@ describe('PokemonCard', () => {
     vi.resetModules()
   })
 
-  it('renders cached type accents, emits events, and toggles favorites', async () => {
+  it('renders card accents, emits hover summary events, and toggles favorites', async () => {
     const toggleFavorite = vi.fn()
 
     vi.doMock('../../../src/stores/favorites', () => ({
@@ -46,6 +46,14 @@ describe('PokemonCard', () => {
 
     expect(wrapper.emitted('select')?.[0]).toEqual(['pikachu'])
     expect(wrapper.emitted('hover')?.[0]).toEqual(['pikachu'])
+    expect(wrapper.emitted('summaryEnter')?.[0]?.[0]).toMatchObject({
+      name: 'pikachu',
+      id: 25,
+      accentColor: '#F7D02C',
+    })
+    expect(wrapper.emitted('summaryEnter')?.[0]?.[0].anchorEl).toBeInstanceOf(
+      HTMLElement,
+    )
     expect(toggleFavorite).toHaveBeenCalledWith(25)
   })
 

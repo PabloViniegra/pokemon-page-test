@@ -1,35 +1,80 @@
-import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
-import PokemonGrid from '../../../src/components/PokemonGrid.vue'
+import { describe, expect, it, vi, beforeEach } from 'vitest'
 
 describe('PokemonGrid', () => {
-  it('passes pokemon props to cards and re-emits select and hover events', async () => {
-    const wrapper = mount(PokemonGrid, {
+  beforeEach(() => {
+    vi.resetModules()
+  })
+
+  it('re-emits hover events and routes summary state through the shared tooltip controller', async () => {
+    const showSummary = vi.fn()
+    const hideSummary = vi.fn()
+
+    vi.doMock('../../../src/composables/usePokemonHoverSummary', () => ({
+      usePokemonHoverSummary: () => ({
+        summaryPokemon: { value: null },
+        summaryAccentColor: { value: null },
+        summaryPosition: { value: null },
+        isSummaryVisible: { value: false },
+        showSummary,
+        hideSummary,
+      }),
+    }))
+
+    const { mountWithPlugins } = await import('../../helpers/mount')
+    const PokemonGrid = (await import('../../../src/components/PokemonGrid.vue'))
+      .default
+
+    const wrapper = mountWithPlugins(PokemonGrid, {
       props: {
         animate: true,
         pokemons: [
-          { name: 'pikachu', url: '25' },
-          { name: 'raichu', url: '26' },
+          {
+            name: 'pikachu',
+            url: '25',
+            imageUrl: 'pikachu.png',
+            paddedId: '0025',
+            isFavorited: false,
+            accentColor: '#F7D02C',
+          },
+          {
+            name: 'raichu',
+            url: '26',
+            imageUrl: 'raichu.png',
+            paddedId: '0026',
+            isFavorited: false,
+            accentColor: '#F7D02C',
+          },
         ],
       },
       global: {
         stubs: {
-          PokemonCard: {
-            props: ['name', 'url'],
-            template:
-              '<button class="card" @click="$emit(\'select\', name)" @mouseenter="$emit(\'hover\', name)">{{ name }}|{{ url }}</button>',
+          RouterLink: {
+            template: '<a class="router-link-stub"><slot /></a>',
+            props: ['to'],
           },
+          PokemonHoverTooltip: true,
         },
       },
     })
 
-    expect(wrapper.findAll('.card')).toHaveLength(2)
-    expect(wrapper.text()).toContain('pikachu|25')
+    const cards = wrapper.findAll('.router-link-stub')
 
-    await wrapper.findAll('.card')[0].trigger('click')
-    await wrapper.findAll('.card')[1].trigger('mouseenter')
+    expect(cards).toHaveLength(2)
+    expect(wrapper.text()).toContain('pikachu')
+
+    await cards[0].trigger('click')
+    await cards[1].trigger('mouseenter')
+    await cards[1].trigger('mouseleave')
 
     expect(wrapper.emitted('select')?.[0]).toEqual(['pikachu'])
     expect(wrapper.emitted('hover')?.[0]).toEqual(['raichu'])
+    expect(showSummary).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'raichu',
+        id: 26,
+        accentColor: '#F7D02C',
+      }),
+    )
+    expect(hideSummary).toHaveBeenCalled()
   })
 })

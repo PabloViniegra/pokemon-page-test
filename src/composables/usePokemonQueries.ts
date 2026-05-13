@@ -146,10 +146,14 @@ export function usePokemonSearchQuery(searchTerm: MaybeRefOrGetter<string>) {
   })
 }
 
-export function usePokemonDetailQuery(id: MaybeRefOrGetter<string | number>) {
+export function usePokemonDetailQuery(
+  id: MaybeRefOrGetter<string | number>,
+  enabled: MaybeRefOrGetter<boolean> = true,
+) {
   return useQuery({
     queryKey: computed(() => pokemonKeys.detail(toValue(id))),
     queryFn: async () => getPokemonDetail(toValue(id)),
+    enabled: computed(() => !!toValue(id) && !!toValue(enabled)),
     staleTime: STALE_TIME,
   })
 }

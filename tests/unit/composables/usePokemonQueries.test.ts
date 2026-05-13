@@ -223,6 +223,7 @@ describe('usePokemonQueries', async () => {
     module.usePokemonDetailQuery(id)
     const detailOptions = useQuery.mock.calls[0][0]
     getPokemonDetail.mockResolvedValueOnce({ id: 25 })
+    expect(detailOptions.enabled.value).toBe(true)
     expect(detailOptions.queryKey.value).toEqual(['pokemons', 'detail', 25])
     await detailOptions.queryFn()
     expect(getPokemonDetail).toHaveBeenCalledWith(25)

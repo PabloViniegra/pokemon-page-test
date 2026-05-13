@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useFavoritesStore } from '../stores/favorites'
 
-defineProps<{
+const props = defineProps<{
   name: string
   url: string
   imageUrl: string
@@ -10,12 +10,38 @@ defineProps<{
   accentColor: string | null
 }>()
 
-defineEmits<{
+interface PokemonCardSummaryTrigger {
+  name: string
+  id: number
+  accentColor: string | null
+  anchorEl: HTMLElement
+}
+
+const emit = defineEmits<{
   select: [name: string]
   hover: [name: string]
+  summaryEnter: [payload: PokemonCardSummaryTrigger]
+  summaryLeave: []
 }>()
 
 const favoritesStore = useFavoritesStore()
+const pokemonId = Number.parseInt(props.paddedId, 10)
+
+function handleSummaryEnter(event: MouseEvent) {
+  const anchorEl = event.currentTarget
+
+  if (!(anchorEl instanceof HTMLElement)) {
+    return
+  }
+
+  emit('hover', props.name)
+  emit('summaryEnter', {
+    name: props.name,
+    id: pokemonId,
+    accentColor: props.accentColor,
+    anchorEl,
+  })
+}
 </script>
 
 <template>
@@ -23,8 +49,9 @@ const favoritesStore = useFavoritesStore()
     :to="{ name: 'pokemon-detail', params: { id: name } }"
     class="pokemon-card group relative bg-white rounded-3xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border-2 border-gray-100 block text-inherit no-underline"
     :class="accentColor ? 'hover:border-gray-200' : 'hover:border-gray-200'"
-    @click="$emit('select', name)"
-    @mouseenter="$emit('hover', name)"
+    @click="emit('select', name)"
+    @mouseenter="handleSummaryEnter"
+    @mouseleave="emit('summaryLeave')"
   >
     <div
       v-if="accentColor"
