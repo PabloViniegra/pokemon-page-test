@@ -16,6 +16,7 @@ import PokemonSprites from '../components/PokemonSprites.vue'
 import PokemonMoves from '../components/PokemonMoves.vue'
 import PokemonSpeciesInfo from '../components/PokemonSpeciesInfo.vue'
 import EvolutionTree from '../components/EvolutionTree.vue'
+import PokeBallLoader from '../components/PokeBallLoader.vue'
 
 const props = defineProps<{
   id: string
@@ -121,21 +122,7 @@ onUnmounted(() => {
       v-if="isLoading"
       class="flex flex-col items-center justify-center min-h-screen gap-6"
     >
-      <div class="relative w-24 h-24">
-        <div
-          class="absolute inset-0 border-4 border-gray-200 rounded-full"
-        ></div>
-        <div
-          class="absolute inset-0 border-4 border-transparent border-t-blue-500 rounded-full animate-spin"
-        ></div>
-        <div
-          class="absolute inset-3 border-4 border-transparent border-b-red-500 rounded-full animate-spin"
-          style="animation-direction: reverse; animation-duration: 1.5s"
-        ></div>
-      </div>
-      <p class="text-gray-500 font-semibold animate-pulse">
-        Loading Pokémon data…
-      </p>
+      <PokeBallLoader size="lg" label="Loading Pokémon data…" />
     </div>
 
     <div

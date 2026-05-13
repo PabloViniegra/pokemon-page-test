@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { TYPE_COLORS } from '../types/pokemon'
+import PokeBallLoader from './PokeBallLoader.vue'
 import { getPokemonSpriteUrl } from '../helpers/pokemon-api'
 import type { TypeSuggestion, PokemonSuggestion } from '../helpers/team-suggestions'
 
@@ -59,17 +60,7 @@ function handlePokemonClick(id: number, name: string) {
 
       <!-- Pokemon suggestions loading -->
       <div v-if="isLoading" class="flex items-center gap-3 py-2">
-        <div class="relative w-5 h-5">
-          <div
-            class="absolute inset-0 border-2 border-gray-200 rounded-full"
-          ></div>
-          <div
-            class="absolute inset-0 border-2 border-transparent border-t-blue-500 rounded-full animate-spin"
-          ></div>
-        </div>
-        <p class="text-sm text-gray-500 font-medium">
-          Analyzing more Pokémon…
-        </p>
+        <PokeBallLoader size="sm" label="Analyzing more Pokémon…" />
       </div>
 
       <!-- Suggested Pokémon -->

@@ -17,11 +17,16 @@ import { useGsapContext } from '../composables/useGsapContext'
 import { useIntersectionObserver } from '../composables/useIntersectionObserver'
 import { getPokemonId, getPokemonImageUrl } from '../helpers/pokemon-api'
 import { TYPE_COLORS } from '../types/pokemon'
-import type { PokemonCardDisplay, PokemonShort, PokemonDetail } from '../types/pokemon'
+import type {
+  PokemonCardDisplay,
+  PokemonShort,
+  PokemonDetail,
+} from '../types/pokemon'
 import SearchBar from '../components/SearchBar.vue'
 import FilterPanel from '../components/FilterPanel.vue'
 import SortSelect from '../components/SortSelect.vue'
 import PokemonGrid from '../components/PokemonGrid.vue'
+import PokeBallLoader from '../components/PokeBallLoader.vue'
 
 const router = useRouter()
 const pokemonLogo = `${import.meta.env.BASE_URL}pokemon.svg`
@@ -92,7 +97,9 @@ const displayedPokemon = computed<PokemonCardDisplay[]>(() => {
       const id = p.id
       const types: string[] = p.types?.map((t) => t.type.name) || []
       const firstType = types[0]
-      const accentColor = firstType ? TYPE_COLORS[firstType]?.color ?? null : null
+      const accentColor = firstType
+        ? (TYPE_COLORS[firstType]?.color ?? null)
+        : null
 
       return {
         name: p.name,
@@ -127,7 +134,9 @@ const displayedPokemon = computed<PokemonCardDisplay[]>(() => {
   const mapped: PokemonCardDisplay[] = (list as PokemonShort[]).map((p) => {
     const id = getPokemonId(p.url)
     const firstType = (p as any).firstType as string | undefined
-    const accentColor = firstType ? TYPE_COLORS[firstType]?.color ?? null : null
+    const accentColor = firstType
+      ? (TYPE_COLORS[firstType]?.color ?? null)
+      : null
 
     return {
       name: p.name,
@@ -295,7 +304,9 @@ onBeforeRouteLeave(() => {
           background-size: 100px 100px;
         "
       ></div>
-      <div class="relative z-10 max-w-7xl mx-auto px-4 py-8 sm:py-10 text-center">
+      <div
+        class="relative z-10 max-w-7xl mx-auto px-4 py-8 sm:py-10 text-center"
+      >
         <div class="home-hero-logo pokemon-logo-wrapper mb-4 sm:mb-5">
           <img
             :src="pokemonLogo"
@@ -319,8 +330,8 @@ onBeforeRouteLeave(() => {
           class="home-hero-copy text-white/90 text-lg max-w-xl mx-auto font-medium"
           style="text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2)"
         >
-          Explore all {{ infiniteData?.pages[0]?.count || '…' }} Pokémon
-          across every generation
+          Explore all {{ infiniteData?.pages[0]?.count || '…' }} Pokémon across
+          every generation
         </p>
       </div>
     </header>
@@ -386,17 +397,7 @@ onBeforeRouteLeave(() => {
         v-if="isLoading && displayedPokemon.length === 0"
         class="flex flex-col items-center justify-center py-24 gap-6"
       >
-        <div class="relative w-20 h-20">
-          <div
-            class="absolute inset-0 border-4 border-gray-200 rounded-full"
-          ></div>
-          <div
-            class="absolute inset-0 border-4 border-transparent border-t-blue-500 rounded-full animate-spin"
-          ></div>
-        </div>
-        <p class="text-gray-500 font-semibold animate-pulse">
-          Loading Pokémon…
-        </p>
+        <PokeBallLoader size="lg" label="Loading Pokémon…" />
       </div>
 
       <div v-else-if="isError" class="text-center py-24">
@@ -427,22 +428,11 @@ onBeforeRouteLeave(() => {
           ref="loadMoreTrigger"
           class="flex justify-center py-12"
         >
-          <div
+          <PokeBallLoader
             v-if="isFetchingNextPage"
-            class="flex flex-col items-center gap-4"
-          >
-            <div class="relative w-12 h-12">
-              <div
-                class="absolute inset-0 border-4 border-gray-200 rounded-full"
-              ></div>
-              <div
-                class="absolute inset-0 border-4 border-transparent border-t-blue-500 rounded-full animate-spin"
-              ></div>
-            </div>
-            <p class="text-gray-400 font-medium text-sm animate-pulse">
-              Loading more…
-            </p>
-          </div>
+            size="md"
+            label="Loading more…"
+          />
         </div>
 
         <div

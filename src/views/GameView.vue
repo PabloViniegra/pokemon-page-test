@@ -8,6 +8,7 @@ import { useAllPokemonListQuery } from '../composables/usePokemonQueries'
 import { TYPE_COLORS } from '../types/pokemon'
 import PokemonSilhouette from '../components/game/PokemonSilhouette.vue'
 import GameControls from '../components/game/GameControls.vue'
+import PokeBallLoader from '../components/PokeBallLoader.vue'
 
 const {
   targetId,
@@ -156,15 +157,7 @@ function handleHint() {
       :style="boardStyle"
     >
       <div v-if="isLoading" class="flex flex-col items-center py-16 gap-4">
-        <div class="relative w-16 h-16">
-          <div class="absolute inset-0 border-4 border-gray-200 rounded-full"></div>
-          <div
-            class="absolute inset-0 border-4 border-transparent border-t-current rounded-full animate-spin text-red-500"
-          ></div>
-        </div>
-        <p class="text-gray-600 font-bold text-lg animate-pulse">
-          Preparing next challenger…
-        </p>
+        <PokeBallLoader size="md" label="Preparing next challenger…" />
       </div>
 
       <div v-else-if="isError" class="text-center py-16">

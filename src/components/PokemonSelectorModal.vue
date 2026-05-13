@@ -3,6 +3,7 @@ import { ref, computed, watch, nextTick, useTemplateRef } from 'vue'
 import { gsap } from 'gsap'
 import { useAllPokemonListQuery } from '../composables/usePokemonQueries'
 import { getPokemonId, getPokemonSpriteUrl } from '../helpers/pokemon-api'
+import PokeBallLoader from './PokeBallLoader.vue'
 
 const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'.split('')
 
@@ -256,17 +257,7 @@ watch(
               v-if="isLoading"
               class="flex flex-col items-center justify-center py-12 gap-4"
             >
-              <div class="relative w-10 h-10">
-                <div
-                  class="absolute inset-0 border-4 border-gray-200 rounded-full"
-                ></div>
-                <div
-                  class="absolute inset-0 border-4 border-transparent border-t-blue-500 rounded-full animate-spin"
-                ></div>
-              </div>
-              <p class="text-gray-500 font-medium text-sm">
-                Loading Pokémon…
-              </p>
+              <PokeBallLoader size="md" label="Loading Pokémon…" />
             </div>
 
             <div
