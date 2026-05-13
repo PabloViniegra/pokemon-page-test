@@ -19,7 +19,7 @@ function createNode(
   }
 }
 
-function mountTree(props: Record<string, unknown>) {
+function mountTree(props: { node: EvolutionNode; accentColor?: string; currentPokemonId?: number }) {
   return mount(EvolutionTree, {
     props,
     global: {
