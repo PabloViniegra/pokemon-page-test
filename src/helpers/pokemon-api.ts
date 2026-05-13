@@ -222,3 +222,56 @@ export function computeEvolutionStages(root: EvolutionNode): EvolutionStage[] {
   traverse(root, 0, null, '')
   return stages.filter(Boolean)
 }
+
+export async function getAllDefaultPokemonWithTypes(): Promise<
+  Array<{ id: number; name: string; types: string[] }>
+> {
+  const response = await fetch('https://beta.pokeapi.co/graphql/v1beta', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      query: `
+        query {
+          pokemon_v2_pokemon(where: {is_default: {_eq: true}}, limit: 2000) {
+            id
+            name
+            pokemon_v2_pokemontypes {
+              pokemon_v2_type {
+                name
+              }
+            }
+          }
+        }
+      `,
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch Pokemon types via GraphQL: ${response.status} ${response.statusText}`,
+    )
+  }
+
+  const json = (await response.json()) as {
+    data?: {
+      pokemon_v2_pokemon: Array<{
+        id: number
+        name: string
+        pokemon_v2_pokemontypes: Array<{
+          pokemon_v2_type: { name: string }
+        }>
+      }>
+    }
+    errors?: unknown[]
+  }
+
+  if (json.errors) {
+    throw new Error('GraphQL errors returned while fetching Pokemon types')
+  }
+
+  return json.data!.pokemon_v2_pokemon.map((p) => ({
+    id: p.id,
+    name: p.name,
+    types: p.pokemon_v2_pokemontypes.map((t) => t.pokemon_v2_type.name),
+  }))
+}

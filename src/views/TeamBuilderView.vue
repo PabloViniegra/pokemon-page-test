@@ -7,18 +7,41 @@ import { useTeamStore } from '../stores/team'
 import { getPokemonDetail } from '../helpers/pokemon-api'
 import { pokemonKeys } from '../composables/usePokemonQueries'
 import { useTeamDetailQueries } from '../composables/useTeamDetailQueries'
+import { useTeamSuggestions } from '../composables/useTeamSuggestions'
 import { useGsapContext } from '../composables/useGsapContext'
 import TeamSlot from '../components/TeamSlot.vue'
 import PokemonSelectorModal from '../components/PokemonSelectorModal.vue'
 import TeamWeaknessChart from '../components/TeamWeaknessChart.vue'
+import TeamSuggestionsPanel from '../components/TeamSuggestionsPanel.vue'
 
 const router = useRouter()
 const teamStore = useTeamStore()
 const queryClient = useQueryClient()
 const { teamTypes, memberTypesMap } = useTeamDetailQueries()
+const {
+  helpfulTypes,
+  suggestedPokemon,
+  isLoading: suggestionsLoading,
+  isError: suggestionsError,
+} = useTeamSuggestions()
 
 const activeSlotIndex = ref<number | null>(null)
 const showModal = ref(false)
+
+const activeTab = ref<'analysis' | 'suggestions'>('analysis')
+
+const tabs = [
+  {
+    key: 'analysis' as const,
+    label: 'Weakness Analysis',
+    caption: 'Spot stacked vulnerabilities before they become a problem.',
+  },
+  {
+    key: 'suggestions' as const,
+    label: 'Suggestions',
+    caption: 'See the next picks that keep the squad balanced.',
+  },
+]
 
 const pageHeader = useTemplateRef<HTMLElement>('pageHeader')
 const slotsGrid = useTemplateRef<HTMLElement>('slotsGrid')
@@ -56,6 +79,16 @@ function handleSelect(id: number, name: string) {
 
 function handleRemove(id: number) {
   teamStore.removeMember(id)
+}
+
+function handleSuggestionSelect(id: number, name: string) {
+  if (teamStore.isFull) return
+  teamStore.addMember({ id, name })
+  queryClient.prefetchQuery({
+    queryKey: pokemonKeys.detail(id),
+    queryFn: () => getPokemonDetail(id),
+    staleTime: 1000 * 60 * 60 * 24,
+  })
 }
 
 useGsapContext(pageHeader, ({ q }) => {
@@ -190,7 +223,162 @@ useGsapContext(slotsGrid, ({ q }) => {
         </div>
       </section>
 
-      <TeamWeaknessChart :team-types="teamTypes" />
+      <section class="space-y-4">
+        <div
+          class="relative overflow-hidden rounded-[2rem] border border-blue-100/80 bg-[linear-gradient(135deg,rgba(231,243,255,0.96),rgba(255,250,230,0.92))] p-4 shadow-[0_22px_50px_rgba(37,99,235,0.10)] dark:border-[rgba(90,110,154,0.28)] dark:bg-[linear-gradient(135deg,#0c1222,#131d35)] dark:shadow-[0_22px_50px_rgba(0,0,0,0.35)] sm:p-5"
+        >
+          <div
+            class="absolute inset-0 opacity-60 dark:opacity-30"
+            style="
+              background-image:
+                radial-gradient(circle at 20px 20px, rgba(59, 76, 202, 0.14) 6px, transparent 6px),
+                radial-gradient(circle at 86px 54px, rgba(255, 203, 5, 0.18) 8px, transparent 8px),
+                linear-gradient(135deg, rgba(255, 255, 255, 0.6), transparent 46%);
+              background-size: 120px 120px, 160px 160px, 100% 100%;
+            "
+          ></div>
+
+          <div class="relative z-10 space-y-4">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div class="max-w-2xl">
+                <p
+                  class="text-[11px] font-black uppercase tracking-[0.32em] text-blue-700/70 dark:text-blue-400/70"
+                >
+                  Team Insights
+                </p>
+                <h2
+                  class="mt-2 font-display text-2xl leading-tight text-gray-900 dark:text-[var(--app-text)] sm:text-[2rem]"
+                >
+                  Keep the battle plan one tap away.
+                </h2>
+                <p class="mt-2 max-w-xl text-sm font-semibold text-gray-600 dark:text-[var(--app-text-muted)] sm:text-[15px]">
+                  Swap between matchup pressure and suggested additions without losing sight of your squad.
+                </p>
+              </div>
+
+              <div
+                class="hidden shrink-0 rounded-[1.4rem] border border-white/70 bg-white/75 px-4 py-3 shadow-[0_16px_32px_rgba(15,23,42,0.08)] dark:border-[rgba(90,110,154,0.28)] dark:bg-[rgba(10,16,29,0.85)] dark:shadow-[0_16px_32px_rgba(0,0,0,0.25)] sm:block"
+              >
+                <p class="text-[11px] font-black uppercase tracking-[0.28em] text-blue-600/70 dark:text-blue-400/70">
+                  Active View
+                </p>
+                <p class="mt-1 font-display text-lg text-gray-900 dark:text-[var(--app-text)]">
+                  {{ activeTab === 'analysis' ? 'Weakness Radar' : 'Next Best Picks' }}
+                </p>
+              </div>
+            </div>
+
+            <div class="grid gap-3 sm:grid-cols-2">
+              <button
+                v-for="tab in tabs"
+                :key="tab.key"
+                class="group relative overflow-hidden rounded-[1.6rem] border px-4 py-4 text-left transition-all duration-200 sm:px-5 sm:py-4"
+                :class="
+                  activeTab === tab.key
+                    ? 'border-white/80 bg-[linear-gradient(135deg,#4f66f8_0%,#3659d8_52%,#243aa6_100%)] text-white shadow-[0_18px_34px_rgba(59,76,202,0.34)]'
+                    : 'border-white/70 bg-white/78 text-gray-700 shadow-[0_12px_28px_rgba(15,23,42,0.08)] hover:-translate-y-0.5 hover:border-blue-200 hover:bg-white dark:border-[rgba(90,110,154,0.28)] dark:bg-[rgba(10,16,29,0.82)] dark:text-[var(--app-text-muted)] dark:shadow-[0_12px_28px_rgba(0,0,0,0.25)] dark:hover:border-[rgba(90,110,154,0.40)] dark:hover:bg-[rgba(10,16,29,0.95)]'
+                "
+                :aria-pressed="activeTab === tab.key"
+                @click="activeTab = tab.key"
+              >
+                <div
+                  v-if="activeTab === tab.key"
+                  class="absolute inset-x-5 top-0 h-10 rounded-b-full bg-white/18 blur-xl"
+                ></div>
+
+                <div class="relative z-10 flex items-start gap-3">
+                  <div
+                    class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border transition-colors"
+                    :class="
+                      activeTab === tab.key
+                        ? 'border-white/30 bg-white/16 text-white'
+                        : 'border-blue-100 bg-blue-50 text-blue-700 group-hover:bg-blue-100 dark:border-[rgba(90,110,154,0.25)] dark:bg-[rgba(59,130,246,0.12)] dark:text-blue-400 dark:group-hover:bg-[rgba(59,130,246,0.20)]'
+                    "
+                  >
+                    <svg
+                      v-if="tab.key === 'analysis'"
+                      class="h-6 w-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M7 20V10m5 10V4m5 16v-7"
+                      />
+                    </svg>
+                    <svg
+                      v-else
+                      class="h-6 w-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9.813 15.904 9 18l-1.813-2.096L5 15l2.187-.904L9 12l.813 2.096L12 15l-2.187.904ZM18 13l-.973 2.292L14.5 16.5l2.527 1.208L18 20l.973-2.292L21.5 16.5l-2.527-1.208L18 13Z"
+                      />
+                    </svg>
+                  </div>
+
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center justify-between gap-3">
+                      <p
+                        class="font-display text-lg leading-tight sm:text-[1.35rem]"
+                      >
+                        {{ tab.label }}
+                      </p>
+                      <span
+                        class="shrink-0 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.22em]"
+                        :class="
+                          activeTab === tab.key
+                            ? 'bg-white/18 text-white'
+                            : 'bg-blue-50 text-blue-700 dark:bg-[rgba(59,130,246,0.12)] dark:text-blue-400'
+                        "
+                      >
+                        {{ activeTab === tab.key ? 'Selected' : 'Open' }}
+                      </span>
+                    </div>
+                    <p
+                      class="mt-2 text-sm leading-relaxed"
+                      :class="
+                        activeTab === tab.key ? 'text-white/84' : 'text-gray-500 dark:text-[var(--app-text-soft)]'
+                      "
+                    >
+                      {{ tab.caption }}
+                    </p>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="relative px-1 sm:px-2">
+          <div
+            class="rounded-[1.75rem] border border-white/70 bg-white/72 p-3 shadow-[0_18px_40px_rgba(15,23,42,0.08)] backdrop-blur-sm dark:border-[rgba(90,110,154,0.28)] dark:bg-[rgba(10,16,29,0.85)] dark:shadow-[0_18px_40px_rgba(0,0,0,0.35)] sm:p-4"
+          >
+            <TeamWeaknessChart
+              v-if="activeTab === 'analysis'"
+              :team-types="teamTypes"
+            />
+            <TeamSuggestionsPanel
+              v-else
+              :helpful-types="helpfulTypes"
+              :suggested-pokemon="suggestedPokemon"
+              :is-loading="suggestionsLoading"
+              :is-error="suggestionsError"
+              :team-size="teamStore.teamSize"
+              :is-full="teamStore.isFull"
+              @select-pokemon="handleSuggestionSelect"
+            />
+          </div>
+        </div>
+      </section>
     </div>
 
     <PokemonSelectorModal

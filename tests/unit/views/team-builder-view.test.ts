@@ -22,6 +22,11 @@ vi.mock('vue-router', () => ({
 
 vi.mock('@tanstack/vue-query', () => ({
   useQueryClient: () => ({ prefetchQuery }),
+  useQuery: () => ({
+    data: ref([]),
+    isLoading: ref(false),
+    isError: ref(false),
+  }),
 }))
 
 vi.mock('../../../src/helpers/pokemon-api', () => ({
@@ -80,6 +85,10 @@ describe('TeamBuilderView', async () => {
               '<div class="modal">{{ open }}<button class="select" @click="$emit(\'select\', 6, \'charizard\')"></button><button class="close" @click="$emit(\'close\')"></button></div>',
           },
           TeamWeaknessChart: { template: '<div class="chart" />' },
+          TeamSuggestionsPanel: {
+            props: ['helpfulTypes', 'suggestedPokemon', 'isLoading', 'isError', 'teamSize', 'isFull'],
+            template: '<div class="suggestions"><button class="suggestion-add" @click="$emit(\'selectPokemon\', 7, \'squirtle\')"></button></div>',
+          },
         },
       },
     })
@@ -119,6 +128,7 @@ describe('TeamBuilderView', async () => {
             template: '<div class="modal">{{ open }}<button class="close" @click="$emit(\'close\')"></button><button class="select" @click="$emit(\'select\', 150, \'mewtwo\')"></button></div>',
           },
           TeamWeaknessChart: true,
+          TeamSuggestionsPanel: true,
         },
       },
     })
@@ -137,5 +147,58 @@ describe('TeamBuilderView', async () => {
 
     await wrapper.find('.close').trigger('click')
     expect(wrapper.find('.modal').text()).toContain('false')
+  })
+
+  it('switches between Analysis and Suggestions tabs', async () => {
+    const wrapper = mount(TeamBuilderView, {
+      global: {
+        stubs: {
+          TeamSlot: {
+            props: ['id', 'name', 'types', 'index'],
+            template: '<div>{{ name }}</div>',
+          },
+          PokemonSelectorModal: true,
+          TeamWeaknessChart: { template: '<div class="chart" />' },
+          TeamSuggestionsPanel: { template: '<div class="suggestions" />' },
+        },
+      },
+    })
+
+    expect(wrapper.text()).toContain('Weakness Analysis')
+    expect(wrapper.text()).toContain('Suggestions')
+    expect(wrapper.find('.chart').exists()).toBe(true)
+    expect(wrapper.find('.suggestions').exists()).toBe(false)
+
+    const suggestionsTab = wrapper.findAll('button').find((b) => b.text().includes('Suggestions'))
+    await suggestionsTab!.trigger('click')
+
+    expect(wrapper.find('.chart').exists()).toBe(false)
+    expect(wrapper.find('.suggestions').exists()).toBe(true)
+  })
+
+  it('adds a Pokémon from the suggestions panel when there is room', async () => {
+    const wrapper = mount(TeamBuilderView, {
+      global: {
+        stubs: {
+          TeamSlot: {
+            props: ['id', 'name', 'types', 'index'],
+            template: '<div>{{ name }}</div>',
+          },
+          PokemonSelectorModal: true,
+          TeamWeaknessChart: true,
+          TeamSuggestionsPanel: {
+            props: ['isFull'],
+            template: '<div><button class="suggestion-add" @click="$emit(\'selectPokemon\', 7, \'squirtle\')"></button></div>',
+          },
+        },
+      },
+    })
+
+    const suggestionsTab = wrapper.findAll('button').find((b) => b.text().includes('Suggestions'))
+    await suggestionsTab!.trigger('click')
+
+    await wrapper.find('.suggestion-add').trigger('click')
+    expect(addMember).toHaveBeenCalledWith({ id: 7, name: 'squirtle' })
+    expect(prefetchQuery).toHaveBeenCalled()
   })
 })
