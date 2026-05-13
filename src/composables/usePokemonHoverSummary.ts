@@ -1,4 +1,4 @@
-import { computed, onBeforeUnmount, ref } from 'vue'
+import { computed, onBeforeUnmount, onDeactivated, ref } from 'vue'
 import type { PokemonDetail } from '../types/pokemon'
 import { usePokemonDetailQuery } from './usePokemonQueries'
 
@@ -117,6 +117,10 @@ export function usePokemonHoverSummary() {
   )
 
   onBeforeUnmount(() => {
+    hideSummary()
+  })
+
+  onDeactivated(() => {
     hideSummary()
   })
 
