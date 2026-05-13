@@ -17,7 +17,7 @@ export const useFiltersStore = defineStore('filters', () => {
   let syncingFromUrl = false
   let syncingToUrl = false
 
-  function readFromUrl() {
+function readFromUrl() {
     syncingFromUrl = true
     searchInput.value = String(route.query.q || '')
     selectedTypes.value = String(route.query.types || '')
@@ -31,12 +31,16 @@ export const useFiltersStore = defineStore('filters', () => {
   function writeToUrl() {
     if (syncingFromUrl) return
     syncingToUrl = true
-    const query: Record<string, string> = {}
+    const query: Record<string, string> = { ...route.query as Record<string, string> }
     if (searchInput.value.trim()) query.q = searchInput.value.trim()
+    else delete query.q
     if (selectedTypes.value.length > 0)
       query.types = selectedTypes.value.join(',')
+    else delete query.types
     if (sortBy.value !== 'id-asc') query.sort = sortBy.value
+    else delete query.sort
     if (showFavoritesOnly.value) query.fav = '1'
+    else delete query.fav
     router.replace({ query })
     syncingToUrl = false
   }
